@@ -81,13 +81,6 @@ local __merge_state_with_persisted_state = function(pstate)
 	end
 end
 
--- TODO: create a generic function from this
-local __syncronize_all_states = function(pstate)
-	__merge_state_with_persisted_state(pstate)
-	__merge_live_state_with_in_memory_state()
-	pstate:write(__sessions_by_id)
-end
-
 local __reverse_sort_table = function(tbl)
 	local keys = {}
 	for k in pairs(tbl) do
@@ -115,7 +108,7 @@ local __get_ordered_session_list = function(order_property, second_order_propert
 			if order_property == "last_used" then
 				return a[order_property] > b[order_property]
 			else
-				return a[order_property] < b[order_property]
+				return a[order_property]:lower() < b[order_property]:lower()
 			end
 		end
 	end)
@@ -123,30 +116,40 @@ local __get_ordered_session_list = function(order_property, second_order_propert
 	return ordered_session_list
 end
 
----@class TmuxSession
+---@class TmuxSessions
 ---@field pstate PersistentState
 ---@field sort_by string
 local TmuxSessions = {}
 TmuxSessions.__index = TmuxSessions
 
----@return TmuxSession
+---@return TmuxSessions
 function TmuxSessions:new(opts)
   local conf = config.reinit_config(opts)
 
 	local obj = {}
-	obj.pstate = PersistentState:new(opts, "sessions.cache")
-  obj.sort_by = conf.opts.sort_sessions
+	self.pstate = PersistentState:new(opts, "sessions.cache")
+  self.sort_by = conf.opts.sort_sessions
 
 	setmetatable(obj, self)
-	__syncronize_all_states(obj.pstate)
+	self:__syncronize_all_states()
 	return obj
+end
+
+function TmuxSessions:__syncronize_all_states ()
+  if self.sort_by == "last_used" then
+    __merge_state_with_persisted_state(self.pstate)
+  end
+	__merge_live_state_with_in_memory_state()
+  if self.sort_by == "last_used" then
+    self.pstate:write(__sessions_by_id)
+  end
 end
 
 ---@class SessionListOptions
 ---@fields format string?
 ---@return TmuxSessionTable[]
 function TmuxSessions:list_sessions()
-	__syncronize_all_states(self.pstate)
+	self:__syncronize_all_states()
 
 	return __get_ordered_session_list(self.sort_by)
 end
@@ -174,7 +177,7 @@ function TmuxSessions:create_session(session_name)
 	end
 
 	if not err then
-		__syncronize_all_states(self.pstate)
+    self:__syncronize_all_states()
 	end
 	return new_session_id, err
 end
@@ -192,7 +195,7 @@ function TmuxSessions:rename_session(session_id, new_name)
 	})
 
 	if not err then
-		__syncronize_all_states(self.pstate)
+		self:__syncronize_all_states()
 	end
 	return err
 end
@@ -208,7 +211,7 @@ function TmuxSessions:delete_session(session_id)
 	})
 
 	if not err then
-		__syncronize_all_states(self.pstate)
+		self:__syncronize_all_states()
 	end
 	return err
 end
@@ -226,7 +229,7 @@ function TmuxSessions:switch_session(session_id)
 	__sessions_by_id[current_session_id].last_used = current_time - 1
 	__sessions_by_id[session_id].last_used = current_time
   local session_name = __sessions_by_id[session_id].name
-	__syncronize_all_states(self.pstate)
+	self:__syncronize_all_states()
 	vim.cmd(string.format('silent !tmux switchc -t "%s" -c "%s"', session_name, TmuxState:get_client_tty()))
 end
 
