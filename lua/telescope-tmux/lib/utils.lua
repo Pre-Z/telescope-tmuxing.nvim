@@ -2,9 +2,9 @@ local config = require("telescope-tmux.core.config")
 local utils = {}
 
 ---@param opts table -- the entire config table
-utils.get_notifier = function (opts)
-  local conf = config.reinit_config(opts).opts
-  local notifier
+utils.get_notifier = function(opts)
+	local conf = config.reinit_config(opts).opts
+	local notifier
 
 	if conf.use_nvim_notify == nil or conf.use_nvim_notify then
 		local notify_plugin_available, notify = pcall(require, "notify")
@@ -14,32 +14,44 @@ utils.get_notifier = function (opts)
 				vim.log.levels.ERROR
 			)
 		end
-    local nvim_notify_wrapper = function(message, level)
-      notify(message, level, conf.nvim_notify)
-    end
+		local nvim_notify_wrapper = function(message, level)
+			notify(message, level, conf.nvim_notify)
+		end
 		notifier = notify_plugin_available and nvim_notify_wrapper or vim.notify
 	else
 		notifier = vim.notify
 	end
 
-  return notifier
+	return notifier
 end
 
 ---@param opts table -- the entire config table
 ---@param message string
 ---@param log_level number
 ---@return boolean
-utils.notified_user_about_session = function (opts, message, log_level)
-  local notifier = utils.get_notifier(opts)
-  local TmuxState = require("telescope-tmux.core.tmux-state"):new()
+utils.notified_user_about_session = function(opts, message, log_level)
+	local notifier = utils.get_notifier(opts)
+	local TmuxState = require("telescope-tmux.core.tmux-state"):new()
 
 	if not TmuxState:in_tmux_session() then
 		notifier(message, log_level)
-    return true
+		return true
 	end
 
-  return false
+	return false
+end
+
+utils.close_telescope_or_refresh = function(opts, prompt_bufnr, finder)
+  local actions = require("telescope.actions")
+  local action_state = require("telescope.actions.state")
+  local conf = config.reinit_config(opts).opts
+
+	if conf.keep_telescope_open then
+		local current_picker = action_state.get_current_picker(prompt_bufnr)
+		current_picker:refresh(finder(opts))
+	else
+		actions.close(prompt_bufnr)
+	end
 end
 
 return utils
-

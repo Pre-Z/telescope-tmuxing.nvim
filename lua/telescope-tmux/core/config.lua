@@ -26,10 +26,12 @@ local __session_sort_possible_values = {
 ---@field nvim_notify NvimNotifyOptions
 ---@field layout_strategy string
 ---@field sort_sessions "last_used" | "name"
+---@field keep_telescope_win_open boolean
 ---@field create_session CreateSessionOptions
 local __TmuxDefaultConfig = {
 	cache_folder = vim.api.nvim_call_function("stdpath", { "cache" }) .. "/telescope-tmux",
 	sort_sessions = "last_used", -- possible options: "last_used", "name"
+  keep_telescope_open = true, -- after quick actions (e.g. deleting/renaming session) keep telescope window open
 	create_session = { -- plenary configuration options
     scan_paths = { "." },
     scan_pattern = nil,
