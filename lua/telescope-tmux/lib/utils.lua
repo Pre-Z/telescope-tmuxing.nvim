@@ -15,7 +15,7 @@ utils.get_notifier = function (opts)
 			)
 		end
     local nvim_notify_wrapper = function(message, level)
-      notify(message, level, conf.nvim_notify_options)
+      notify(message, level, conf.nvim_notify)
     end
 		notifier = notify_plugin_available and nvim_notify_wrapper or vim.notify
 	else

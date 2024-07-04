@@ -23,7 +23,7 @@ local __session_sort_possible_values = {
 
 ---@class TmuxConfig
 ---@field cache_folder string
----@field nvim_notify_options NvimNotifyOptions
+---@field nvim_notify NvimNotifyOptions
 ---@field layout_strategy string
 ---@field sort_sessions "last_used" | "name"
 ---@field create_session CreateSessionOptions
@@ -39,7 +39,7 @@ local __TmuxDefaultConfig = {
     only_dirs = true,
     previewer_command = { "ls", "-la", }
 	},
-	nvim_notify_options = {
+	nvim_notify = {
 		icon = "﬿",
 		title = "Telescope Tmux",
 		timeout = 3000,
