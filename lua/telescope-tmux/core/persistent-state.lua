@@ -51,7 +51,7 @@ end
 ---@field get function
 ---@field write function
 ---@field cache_file string
----@field notifier function
+---@field __notifier function
 local PersistentState = {}
 PersistentState.__index = PersistentState
 
@@ -62,10 +62,9 @@ function PersistentState:new(opts, cache_file)
   local conf = config.reinit_config(opts).opts
 
   -- TODO: clarify if this should be reinited or not
-  obj.notifier = utils.get_notifier(opts)
+  obj.__notifier = utils.get_notifier(opts)
   obj.cache_file = conf.cache_folder .. "/" .. cache_file
   setmetatable(obj, self)
-  -- self.__index = self
   prepare_cache_folder(conf)
 
   return obj
@@ -74,32 +73,18 @@ end
 function PersistentState:get()
   local content, err = persist.load_table(self.cache_file)
   if err then
-    self.notifier("Failed to read cache file (" .. self.cache_file .. "): " .. err, vim.log.levels.error)
+    self.__notifier("Failed to read cache file (" .. self.cache_file .. "): " .. err, vim.log.levels.error)
     return {}
   end
   return content
-  -- local success, result = pcall(vim.fn.readfile, self.cache_file)
-  --
-  -- if not success then
-  -- self.notifier("Failed to read cache file (" .. self.cache_file .. "): " .. result, vim.log.levels.error)
-  --   return {}
-  -- end
-  --
-  -- return result
 end
 
 ---@param content any
 function PersistentState:write(content)
  local _, err = persist.save_table(content, self.cache_file)
-  -- content = vim.fn.join(content, "\n")
-  -- print("the content: " .. table_to_string(content))
-  -- -- content = table.concat(content, "\n")
-  -- print("the content: " .. table_to_string(content))
-  -- local lines = vim.fn.split(content, "\n")
-  -- local success, err = pcall(vim.fn.writefile, lines, self.cache_file)
 
   if err then
-    self.notifier("Error writing to file: " .. err, vim.log.levels.error)
+    self.__notifier("Error writing to file: " .. err, vim.log.levels.error)
   end
 end
 
