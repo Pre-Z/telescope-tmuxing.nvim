@@ -4,13 +4,15 @@
 ---@class TmuxCommand
 ---@field command function
 local TmuxCommand = {}
-TmuxCommand.__index = TmuxCommand
 
----@param opts TmuxCommandOptions
+---@param opts? TmuxCommandOptions
 function TmuxCommand:new(opts)
   local obj = {}
   setmetatable(obj, self)
-  self.command = opts.command
+  if opts then
+    self.command = opts.command
+  end
+  self.__index = self
   return obj
 end
 

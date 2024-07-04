@@ -279,4 +279,11 @@ function TmuxSessions:switch_to_previous_session()
 	end
 end
 
+---@param session_id string
+---@return {} | TmuxSessionTable
+function TmuxSessions:get_session_data_by_id(session_id)
+  self:__syncronize_all_states()
+  return __sessions_by_id[session_id] or {}
+end
+
 return TmuxSessions

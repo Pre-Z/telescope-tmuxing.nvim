@@ -31,6 +31,9 @@ end
 SwitchActions.rename_session = function(prompt_bufnr, opts)
 	local selection = action_state.get_selected_entry()
 	local rename_callback = function(new_name)
+    if not new_name then
+      return
+    end
 		local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
 		local err = TmuxSessions:rename_session(selection.value.id, new_name)
 		if err then

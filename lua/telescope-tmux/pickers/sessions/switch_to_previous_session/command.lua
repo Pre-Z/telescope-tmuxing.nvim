@@ -1,6 +1,10 @@
 local TmuxCommand = require("telescope-tmux.core.base-command")
 
-return TmuxCommand:new({
+---@class SwtichCommand : TmuxCommand
+local SwitchCommand = TmuxCommand:new()
+SwitchCommand.__index = SwitchCommand
+
+return SwitchCommand:new({
 	command = function(opts)
 		opts = opts or {}
 		local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
