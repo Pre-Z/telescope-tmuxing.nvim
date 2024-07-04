@@ -41,7 +41,6 @@ function TmuxPicker:get_picker_for_telescope(opts)
     previewer = self.previewer,
     attach_mappings = telescope_utils.get_attach_mappings_fn(self.mappings, opts),
   }
-  -- local notifier = utils.get_notifier(opts)
 
   picker_options = vim.tbl_deep_extend("keep", picker_options, opts)
   local picker = pickers.new(picker_options)

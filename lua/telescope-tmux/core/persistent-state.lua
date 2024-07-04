@@ -62,7 +62,7 @@ function PersistentState:new(opts, cache_file)
   local conf = config.reinit_config(opts).opts
 
   -- TODO: clarify if this should be reinited or not
-  obj.notifier = utils.get_notifier(conf)
+  obj.notifier = utils.get_notifier(opts)
   obj.cache_file = conf.cache_folder .. "/" .. cache_file
   setmetatable(obj, self)
   -- self.__index = self

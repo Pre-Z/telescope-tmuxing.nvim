@@ -1,13 +1,17 @@
 local finders = require("telescope.finders")
-local config = require("telescope-tmux.core.config")
 
 return function(opts)
-	local TmuxSessions = require("telescope-tmux.core.sessions"):new(config.reinit_config(opts))
+	local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
 	local TmuxState = require("telescope-tmux.core.tmux-state"):new()
-  local results = TmuxSessions:list_sessions()
+	if not TmuxState:in_tmux_session() then
+		local utils = require("telescope-tmux.lib.utils")
+		local notifier = utils.get_notifier(opts)
+		notifier("Not in a Tmux session, session switch is not possible", vim.log.levels.ERROR)
+	end
+	local results = TmuxSessions:list_sessions()
 
 	return finders.new_table({
-    results = results,
+		results = results,
 		entry_maker = function(item)
 			return {
 				value = item,
