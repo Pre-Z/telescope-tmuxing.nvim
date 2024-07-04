@@ -41,7 +41,8 @@ end
 
 local pickers = {
 	switch_session = require("telescope-tmux.pickers.sessions.switch_session.picker"),
-  switch_prev_session = require("telescope-tmux.pickers.sessions.switch-to-previous-session.command")
+  switch_prev_session = require("telescope-tmux.pickers.sessions.switch-to-previous-session.command"),
+  create_session = require("telescope-tmux.pickers.sessions.create_session.picker"),
 }
 
 return telescope.register_extension({

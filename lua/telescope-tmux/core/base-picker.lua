@@ -7,7 +7,7 @@ local pickers = require("telescope.pickers")
 ---@field title string
 ---@field finder function
 ---@field sorter function
----@field previewer table
+---@field previewer function | table
 ---@field mappings table
 
 ---@class TmuxPicker
@@ -34,11 +34,12 @@ function TmuxPicker:new(opts)
 end
 
 function TmuxPicker:get_picker_for_telescope(opts)
+  opts = opts or {}
   local picker_options = {
     prompt_title = self.title,
     finder = self.finder(opts),
     sorter = self.sorter,
-    previewer = self.previewer,
+    previewer = type(self.previewer) == 'table' and self.previewer or self.previewer(opts),
     attach_mappings = telescope_utils.get_attach_mappings_fn(self.mappings, opts),
   }
 

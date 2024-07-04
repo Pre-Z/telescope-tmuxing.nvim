@@ -54,6 +54,15 @@ M.shallow_copy_table = function(orig)
     return copy
 end
 
+M.concat_simple_lists = function (t1, t2)
+  local tbl = M.shallow_copy_table(t1)
+  for _, v in pairs(t2) do
+    table.insert(tbl, v)
+  end
+
+  return tbl
+end
+
 ---@param tbl table
 ---@param sorter_function function?
 M.key_ordered_pairs = function(tbl, sorter_function)

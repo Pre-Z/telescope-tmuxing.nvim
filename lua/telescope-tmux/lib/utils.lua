@@ -40,5 +40,6 @@ utils.notified_user_about_session = function (opts, message, log_level)
 
   return false
 end
+
 return utils
 
