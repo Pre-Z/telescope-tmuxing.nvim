@@ -53,10 +53,9 @@ local __merge_live_state_with_in_memory_state = function()
     end
   end
 
-
 	for id in pairs(__sessions_by_id) do
 		if not active_tmux_session_list[id] then
-			__session_list[id] = nil
+			__sessions_by_id[id] = nil
 		end
 	end
 
