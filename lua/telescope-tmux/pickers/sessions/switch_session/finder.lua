@@ -13,6 +13,16 @@ return function(opts)
 
 	local results = TmuxSessions:list_sessions()
 
+  local decide_if_valid = function (id)
+    -- if not in tmux state do not exclude any session
+    if not TmuxState:in_tmux_session() then
+      return true
+    end
+
+    -- do not show the current session
+    return id ~= TmuxState:get_session_id()
+  end
+
 	return finders.new_table({
 		results = results,
 		entry_maker = function(item)
@@ -20,7 +30,7 @@ return function(opts)
 				value = item,
 				display = item.name,
 				ordinal = item.name,
-				valid = item.id ~= TmuxState:get_session_id(), -- do not show the current session
+				valid = decide_if_valid(item.id),
 			}
 		end,
 	})
