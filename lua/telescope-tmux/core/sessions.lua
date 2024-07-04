@@ -3,6 +3,7 @@ local helper = require("telescope-tmux.lib.helper")
 local TmuxState = require("telescope-tmux.core.tmux-state"):new()
 local PersistentState = require("telescope-tmux.core.persistent-state")
 local config = require("telescope-tmux.core.config")
+local utils = require("telescope-tmux.lib.utils")
 local next = next
 
 ---@class TmuxSessionTable
@@ -123,6 +124,7 @@ end
 ---@class TmuxSessions
 ---@field pstate PersistentState
 ---@field sort_by string
+---@field __notifier function
 local TmuxSessions = {}
 TmuxSessions.__index = TmuxSessions
 
@@ -133,6 +135,7 @@ function TmuxSessions:new(opts)
 	local obj = {}
 	self.pstate = PersistentState:new(conf, "sessions.cache")
 	self.sort_by = conf.opts.sort_sessions
+  self.__notifier = utils.get_notifier(opts)
 
 	setmetatable(obj, self)
 	self:__syncronize_all_states()
@@ -236,6 +239,8 @@ end
 function TmuxSessions:switch_to_previous_session()
 	local current_session_id = TmuxState:get_session_id()
 	local previous_session = nil
+  self:__syncronize_all_states()
+
 	for _, v in pairs(__get_ordered_session_list("last_used")) do
 		if v.id ~= current_session_id then
 			previous_session = v
@@ -245,6 +250,8 @@ function TmuxSessions:switch_to_previous_session()
 
 	if previous_session ~= nil then
 		self:switch_session(previous_session.id)
+  else
+    self.__notifier("No previous session to switch to", vim.log.levels.INFO)
 	end
 end
 
