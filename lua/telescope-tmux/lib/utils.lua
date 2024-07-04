@@ -1,6 +1,7 @@
 local config = require("telescope-tmux.core.config")
 local utils = {}
 
+---@param opts table -- the entire config table
 utils.get_notifier = function (opts)
   local conf = config.reinit_config(opts).opts
   local notifier
@@ -24,5 +25,20 @@ utils.get_notifier = function (opts)
   return notifier
 end
 
+---@param opts table -- the entire config table
+---@param message string
+---@param log_level number
+---@return boolean
+utils.notified_user_about_session = function (opts, message, log_level)
+  local notifier = utils.get_notifier(opts)
+  local TmuxState = require("telescope-tmux.core.tmux-state"):new()
+
+	if not TmuxState:in_tmux_session() then
+		notifier(message, log_level)
+    return true
+	end
+
+  return false
+end
 return utils
 

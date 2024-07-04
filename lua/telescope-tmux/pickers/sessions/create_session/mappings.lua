@@ -9,7 +9,4 @@ return {
       vim.cmd(string.format('silent !tmux switchc -t "%s" -c "%s"', selection.value, current_client))
 		actions.close(prompt_bufnr)
 	end,
-	["<c-a>"] = custom_actions.create_new_session,
-	["<c-d>"] = custom_actions.delete_session,
-	["<c-r>"] = custom_actions.rename_session,
 }
