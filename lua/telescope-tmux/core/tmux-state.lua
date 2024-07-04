@@ -1,6 +1,5 @@
 local tutils = require("telescope.utils")
 
-local __tmux_client_tty = tutils.get_os_command_output({ "tmux", "display-message", "-p", "#{client_tty}" })[1]
 local __in_tmux_session = tutils.get_os_command_output({ "printenv", "TMUX" })[1] ~= nil
 local __tmux_session_id = tutils.get_os_command_output({"tmux", "display-message", "-p",  "#{session_id}"})[1]
 
@@ -18,7 +17,7 @@ end
 
 ---@return string | nil
 function TmuxState:get_client_tty()
-  return __tmux_client_tty
+  return tutils.get_os_command_output({ "tmux", "display-message", "-p", "#{client_tty}" })[1]
 end
 
 ---@return string | nil
