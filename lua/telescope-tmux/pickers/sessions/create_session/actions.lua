@@ -45,14 +45,14 @@ CreateSessionActions.on_select = function(prompt_bufnr, opts)
 					return
 				end
 
-				local new_session_id, err = TmuxSessions:create_session(input, selected_full_path)
-				if err then
-					notifier("Failed to create session: " .. err, vim.log.levels.ERROR)
+				local created_session_id, create_session_err = TmuxSessions:create_session(input, selected_full_path)
+				if create_session_err then
+					notifier("Failed to create session: " .. create_session_err, vim.log.levels.ERROR)
 					return
 				end
 
-				if new_session_id then
-					local error = TmuxSessions:switch_session(new_session_id)
+				if created_session_id then
+					local error = TmuxSessions:switch_session(created_session_id)
 					if error ~= nil then
 						notifier(error, vim.log.levels.ERROR)
 						return
