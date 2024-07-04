@@ -234,6 +234,8 @@ function TmuxSessions:delete_session(session_id)
 		session_id,
 	})
 
+  err = err[1]
+
 	if not err then
 		self:__syncronize_all_states()
 	end
