@@ -286,4 +286,14 @@ function TmuxSessions:get_session_data_by_id(session_id)
   return __sessions_by_id[session_id] or {}
 end
 
+---@param session_name string
+function TmuxSessions:get_session_id_by_name(session_name)
+  for _, session_data in pairs(__session_list) do
+    if session_name == session_data.name then
+      return session_data.id
+    end
+  end
+  return nil
+end
+
 return TmuxSessions

@@ -1,7 +1,6 @@
 local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
 local utils = require("telescope-tmux.lib.utils")
-local tutils = require("telescope.utils")
 local popup = require("telescope-tmux.lib.popup")
 
 local CreateSessionActions = {}
@@ -23,10 +22,26 @@ CreateSessionActions.on_select = function(prompt_bufnr, opts)
 	local new_session_id, err = TmuxSessions:create_session(new_session_name, selected_full_path)
 
 	if err then
+		local duplicate_session_name
+
+		for match in string.gmatch(err, "duplicate session:%s?(.*)") do
+			duplicate_session_name = match
+		end
+
 		-- this seems to be more robust to let Tmux do its name normaliztaion and check if the normalized name already exists or not
-		if string.find(err, "duplicate session:") then
+		if duplicate_session_name then
+			local session_switch_cb = function()
+				local session_id = TmuxSessions:get_session_id_by_name(duplicate_session_name)
+
+				if session_id then
+					TmuxSessions:switch_session(session_id)
+				else
+					notifier("Could not switch to session, failed to get session id", vim.log.levels.ERROR)
+				end
+			end
+
 			local rename_session_cb = function(input)
-				if input == nil then
+				if not input then
 					return
 				end
 
@@ -36,21 +51,32 @@ CreateSessionActions.on_select = function(prompt_bufnr, opts)
 					return
 				end
 
-				local error = TmuxSessions:switch_session(new_session_id)
-				if error ~= nil then
-					notifier(error, vim.log.levels.ERROR)
-					return
+				if new_session_id then
+					local error = TmuxSessions:switch_session(new_session_id)
+					if error ~= nil then
+						notifier(error, vim.log.levels.ERROR)
+						return
+					end
 				end
 
 				return actions.close(prompt_bufnr)
 			end
-			popup.show_input(
-				{
-					prompt = "There is already an active session for this path.\nRename it or press Esc to cancel",
+
+			local input_popup_cb = function()
+				popup.show_input_center({
+					prompt = "Type in the new name or press Esc to cancel",
 					default = new_session_name .. "_copy",
-				},
-				rename_session_cb
-			)
+				}, rename_session_cb)
+			end
+
+			local select_table = {
+				[1] = { ["Switch to the active session"] = session_switch_cb },
+				[2] = { ["Create new session with other name"] = input_popup_cb },
+			}
+			local selector_config = {
+				prompt = "There is already an active session for this path.\nSelect an option or press Esc to cancel",
+			}
+			popup.show_selector(select_table, selector_config)
 		end
 		return
 	end
