@@ -6,7 +6,7 @@ local TmuxPicker = require("telescope-tmux.core.base-picker")
 
 return TmuxPicker:new(
   {
-    title = "Other Active Sessions",
+    title = "Other Active Tmux Sessions",
     finder = finder,
     sorter = sorters.get_generic_fuzzy_sorter(),
     previewer = previewer,

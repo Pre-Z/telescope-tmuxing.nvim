@@ -55,11 +55,12 @@ end
 local PersistentState = {}
 PersistentState.__index = PersistentState
 
----@param opts TmuxConfig
+---@param opts table
 ---@param cache_file string
 function PersistentState:new(opts, cache_file)
   local obj = {}
-  local conf = config.reinit_config(opts.opts).opts
+  local conf = config.reinit_config(opts).opts
+
   -- TODO: clarify if this should be reinited or not
   obj.notifier = utils.get_notifier(conf)
   obj.cache_file = conf.cache_folder .. "/" .. cache_file

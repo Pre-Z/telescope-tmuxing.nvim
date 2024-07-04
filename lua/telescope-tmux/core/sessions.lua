@@ -36,22 +36,24 @@ local __add_session_to_session_cache_and_pstate = function(session_id, session_n
 end
 
 local __merge_live_state_with_in_memory_state = function()
-	local tmux_session_list, _, err =
+	local tmux_sessions_string_list, _, err =
 		tutils.get_os_command_output({ "tmux", "list-sessions", "-F", "#{session_id}:#{session_name}" })
 
-  if next(err) ~= nil then return end
+	if next(err) ~= nil then
+		return
+	end
 
 	__session_list = {} -- empty current list
 
 	local active_tmux_session_list = {}
 
-  for _, session_detail in pairs(tmux_session_list) do
-    for id, name in string.gmatch(session_detail, '($%d+):(.+)') do
-      if id ~= nil then
-        active_tmux_session_list[id] = name
-      end
-    end
-  end
+	for _, session_string in pairs(tmux_sessions_string_list) do
+		for id, name in string.gmatch(session_string, "($%d+):(.+)") do
+			if id ~= nil then
+				active_tmux_session_list[id] = name
+			end
+		end
+	end
 
 	for id in pairs(__sessions_by_id) do
 		if not active_tmux_session_list[id] then
@@ -107,8 +109,10 @@ local __get_ordered_session_list = function(order_property, second_order_propert
 			-- the last used should be the first in the list
 			if order_property == "last_used" then
 				return a[order_property] > b[order_property]
-			else
+			elseif order_property == "name" then
 				return a[order_property]:lower() < b[order_property]:lower()
+			else
+				return a[order_property] < b[order_property]
 			end
 		end
 	end)
@@ -124,25 +128,21 @@ TmuxSessions.__index = TmuxSessions
 
 ---@return TmuxSessions
 function TmuxSessions:new(opts)
-  local conf = config.reinit_config(opts)
+	local conf = config.reinit_config(opts)
 
 	local obj = {}
-	self.pstate = PersistentState:new(opts, "sessions.cache")
-  self.sort_by = conf.opts.sort_sessions
+	self.pstate = PersistentState:new(conf, "sessions.cache")
+	self.sort_by = conf.opts.sort_sessions
 
 	setmetatable(obj, self)
 	self:__syncronize_all_states()
 	return obj
 end
 
-function TmuxSessions:__syncronize_all_states ()
-  if self.sort_by == "last_used" then
-    __merge_state_with_persisted_state(self.pstate)
-  end
+function TmuxSessions:__syncronize_all_states()
+	__merge_state_with_persisted_state(self.pstate)
 	__merge_live_state_with_in_memory_state()
-  if self.sort_by == "last_used" then
-    self.pstate:write(__sessions_by_id)
-  end
+	self.pstate:write(__sessions_by_id)
 end
 
 ---@class SessionListOptions
@@ -177,7 +177,7 @@ function TmuxSessions:create_session(session_name)
 	end
 
 	if not err then
-    self:__syncronize_all_states()
+		self:__syncronize_all_states()
 	end
 	return new_session_id, err
 end
@@ -221,16 +221,31 @@ end
 function TmuxSessions:switch_session(session_id)
 	local current_time = os.time()
 
-  if __sessions_by_id[session_id] == nil then
-    return "Cannot switch session, no session found with id: " .. session_id
-  end
+	if __sessions_by_id[session_id] == nil then
+		return "Cannot switch session, no session found with id: " .. session_id
+	end
 
 	local current_session_id = TmuxState:get_session_id()
 	__sessions_by_id[current_session_id].last_used = current_time - 1
 	__sessions_by_id[session_id].last_used = current_time
-  local session_name = __sessions_by_id[session_id].name
+	local session_name = __sessions_by_id[session_id].name
 	self:__syncronize_all_states()
 	vim.cmd(string.format('silent !tmux switchc -t "%s" -c "%s"', session_name, TmuxState:get_client_tty()))
+end
+
+function TmuxSessions:switch_to_previous_session()
+	local current_session_id = TmuxState:get_session_id()
+	local previous_session = nil
+	for _, v in pairs(__get_ordered_session_list("last_used")) do
+		if v.id ~= current_session_id then
+			previous_session = v
+			break
+		end
+	end
+
+	if previous_session ~= nil then
+		self:switch_session(previous_session.id)
+	end
 end
 
 return TmuxSessions

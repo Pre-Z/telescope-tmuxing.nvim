@@ -1,8 +1,7 @@
-local config = require("telescope-tmux.core.config")
 local utils = {}
 
 utils.get_notifier = function (opts)
-  conf = config.reinit_config(opts).opts
+  local conf = opts
   local notifier
 
 	if conf.use_nvim_notify == nil or conf.use_nvim_notify then

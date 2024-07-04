@@ -27,6 +27,7 @@ function TmuxPicker:new(opts)
   obj.sorter = opts.sorter
   obj.previewer = opts.previewer
   obj.mappings = opts.mappings
+  -- TODO: place back this functionality
   -- self._in_tmux_session = tmux_commands.being_in_tmux_session()
   setmetatable(obj, self)
   return obj
