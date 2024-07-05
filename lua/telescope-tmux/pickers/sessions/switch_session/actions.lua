@@ -31,9 +31,9 @@ end
 SwitchActions.rename_session = function(prompt_bufnr, opts)
 	local selection = action_state.get_selected_entry()
 	local rename_callback = function(new_name)
-    if not new_name then
-      return
-    end
+		if not new_name then
+			return
+		end
 		local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
 		local err = TmuxSessions:rename_session(selection.value.id, new_name)
 		if err then
@@ -71,17 +71,18 @@ SwitchActions.kill_session = function(prompt_bufnr, opts)
 
 	local kill_cb = function(answer)
 		local accept_as_yes = { "yes", "Yes", "y", "Y", "YES", "yep" }
-		if vim.tbl_contains(accept_as_yes, answer) then
-			local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
-			local notifier = utils.get_notifier(opts)
-			for _, session_id in pairs(ids_to_kill) do
-				local err = TmuxSessions:kill_session(session_id)
-				if err then
-					notifier("Failed to kill session: " .. err, vim.log.levels.ERROR)
-				end
-			end
+		if not vim.tbl_contains(accept_as_yes, answer) then
+			return
 		end
 
+		local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
+		local notifier = utils.get_notifier(opts)
+		for _, session_id in pairs(ids_to_kill) do
+			local err = TmuxSessions:kill_session(session_id)
+			if err then
+				notifier("Failed to kill session: " .. err, vim.log.levels.ERROR)
+			end
+		end
 		utils.close_telescope_or_refresh(opts, prompt_bufnr, finder)
 	end
 
