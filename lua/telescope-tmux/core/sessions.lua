@@ -226,7 +226,7 @@ end
 
 ---@param session_id string
 ---@return string | nil
-function TmuxSessions:delete_session(session_id)
+function TmuxSessions:kill_session(session_id)
 	local _, _, err = tutils.get_os_command_output({
 		"tmux",
 		"kill-session",
