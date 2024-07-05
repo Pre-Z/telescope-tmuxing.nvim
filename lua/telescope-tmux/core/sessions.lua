@@ -254,9 +254,8 @@ function TmuxSessions:switch_session(session_id)
 	local current_session_id = TmuxState:get_session_id()
 	__sessions_by_id[current_session_id].last_used = current_time - 1
 	__sessions_by_id[session_id].last_used = current_time
-	local session_name = __sessions_by_id[session_id].name
 	self:__syncronize_all_states()
-	local command = string.format('silent !tmux switchc -t "%s" -c "%s"', session_name, TmuxState:get_client_tty())
+	local command = string.format("silent !tmux switch-client -t '%s' -c '%s'", session_id, TmuxState:get_client_tty())
 	vim.cmd(command)
 end
 
