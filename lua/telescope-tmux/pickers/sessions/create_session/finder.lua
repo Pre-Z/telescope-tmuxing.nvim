@@ -20,9 +20,16 @@ return function (opts)
     scanner_config.respect_gitignore = conf.respect_gitignore
     scanner_config.only_dirs = conf.only_dirs
 
-    local found_dirs = scanner.scan_dir(conf.scan_paths, scanner_config) -- adding the parent directories also
+    local dirs = {}
+    for _, dir in pairs(conf.scan_paths) do
+      dir = vim.fn.expand(dir) -- resolve ~/ path to full path otherwise scan_dir will say that the current user has no access to the directory
+      dir = string.gsub(dir, "/$", "") -- cutting off the trailing / if there is any
+      table.insert(dirs, dir)
+    end
 
-    results = helper.concat_simple_lists(found_dirs, conf.scan_paths)
+    local found_dirs = scanner.scan_dir(dirs, scanner_config) -- adding the parent directories also
+
+    results = helper.concat_simple_lists(found_dirs, dirs)
     table.sort(results)
   end
 
