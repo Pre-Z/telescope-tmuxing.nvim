@@ -1,5 +1,6 @@
 local helper = require("telescope-tmux.lib.helper")
 local M = {}
+local dressing_available, dressing = pcall(require, "dressing")
 
 ---@class InputOptions
 ---@field prompt string
@@ -12,7 +13,6 @@ M.show_input = function(opts, callback)
 end
 
 M.show_input_center = function(...)
-	local dressing_available, dressing = pcall(require, "dressing")
 	if dressing_available then
 		dressing.setup({
 			input = {
@@ -44,6 +44,15 @@ M.show_selector = function(select_table, config)
 			option_cb_table[title] = cb
 			table.insert(options, title)
 		end
+	end
+
+  -- FIXME: need better solution for this
+	if dressing_available then
+		dressing.setup({
+			select = {
+				backend = { "builtin" },
+			},
+		})
 	end
 
 	vim.ui.select(options, config, function(selection)

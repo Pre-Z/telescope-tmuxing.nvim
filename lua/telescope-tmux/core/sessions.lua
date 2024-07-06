@@ -47,7 +47,7 @@ local __merge_live_state_with_in_memory_state = function()
 	local tmux_sessions_string_list, _, err =
 		tutils.get_os_command_output({ "tmux", "list-sessions", "-F", "#{session_id}:#{session_name}" })
 
-  err = err[1]
+	err = err[1]
 	if err then
 		return {}
 	end
@@ -184,13 +184,13 @@ function TmuxSessions:create_session(session_name, cwd)
 		"#{session_id}:#{session_name}",
 	}
 
-  if cwd then
-    tmux_create_session_command = helper.concat_simple_lists(tmux_create_session_command, { "-c", cwd })
-  end
+	if cwd then
+		tmux_create_session_command = helper.concat_simple_lists(tmux_create_session_command, { "-c", cwd })
+	end
 
 	new_session_id_and_name, _, err = tutils.get_os_command_output(tmux_create_session_command)
 
-  err = err[1]
+	err = err[1]
 	if err then
 		return nil, err
 	end
@@ -199,7 +199,7 @@ function TmuxSessions:create_session(session_name, cwd)
 
 	if new_session_id then
 		__add_session_to_session_cache_and_pstate(new_session_id, new_session_name, self.pstate)
-    self:__syncronize_all_states()
+		self:__syncronize_all_states()
 	end
 
 	return new_session_id, err
@@ -217,7 +217,7 @@ function TmuxSessions:rename_session(session_id, new_name)
 		new_name,
 	})
 
-  err = err[1]
+	err = err[1]
 	if not err then
 		self:__syncronize_all_states()
 	end
@@ -234,12 +234,26 @@ function TmuxSessions:kill_session(session_id)
 		session_id,
 	})
 
-  err = err[1]
+	err = err[1]
 
 	if not err then
 		self:__syncronize_all_states()
 	end
 	return err
+end
+
+---@param session_id_to_kill string
+---@param session_id_to_switch string
+---@return string | nil
+function TmuxSessions:switch_to_session_and_kill_current(session_id_to_switch)
+	local current_session_id = TmuxState:get_session_id()
+	local command = string.format(
+		"silent !tmux switch-client -t '%s' -c '%s' \\; kill-session -t '%s'",
+		session_id_to_switch,
+		TmuxState:get_client_tty(),
+		current_session_id
+	)
+	vim.cmd(command)
 end
 
 ---@param session_id string
@@ -259,7 +273,7 @@ function TmuxSessions:switch_session(session_id)
 	vim.cmd(command)
 end
 
-function TmuxSessions:switch_to_previous_session()
+function TmuxSessions:get_previous_session()
 	local current_session_id = TmuxState:get_session_id()
 	local previous_session = nil
 	self:__syncronize_all_states()
@@ -271,6 +285,12 @@ function TmuxSessions:switch_to_previous_session()
 		end
 	end
 
+	return previous_session
+end
+
+function TmuxSessions:switch_to_previous_session()
+	local previous_session = self:get_previous_session()
+
 	if previous_session ~= nil then
 		self:switch_session(previous_session.id)
 	else
@@ -281,18 +301,18 @@ end
 ---@param session_id string
 ---@return {} | TmuxSessionTable
 function TmuxSessions:get_session_data_by_id(session_id)
-  self:__syncronize_all_states()
-  return __sessions_by_id[session_id] or {}
+	self:__syncronize_all_states()
+	return __sessions_by_id[session_id] or {}
 end
 
 ---@param session_name string
 function TmuxSessions:get_session_id_by_name(session_name)
-  for _, session_data in pairs(__session_list) do
-    if session_name == session_data.name then
-      return session_data.id
-    end
-  end
-  return nil
+	for _, session_data in pairs(__session_list) do
+		if session_name == session_data.name then
+			return session_data.id
+		end
+	end
+	return nil
 end
 
 return TmuxSessions
