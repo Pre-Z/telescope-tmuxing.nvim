@@ -74,7 +74,7 @@ CreateSessionActions.on_select = function(prompt_bufnr, opts)
 				[2] = { ["Create new session with other name"] = input_popup_cb },
 			}
 			local selector_config = {
-				prompt = "There is already an active session for this path.\nSelect an option or press Esc to cancel",
+				prompt = "There is already an active session for this path.\nSelect or Esc to cancel",
 			}
 			popup.show_selector(select_table, selector_config)
 		end
