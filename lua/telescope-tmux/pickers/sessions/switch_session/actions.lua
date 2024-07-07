@@ -57,14 +57,14 @@ SwitchActions.kill_session = function(prompt_bufnr, opts)
 
 	local ids_to_kill = {}
 	local names_to_kill = {}
-	local prompt = "Want to kill the selected\nsessions? y/N"
+	local prompt = "Kill the selected\nsessions? [y/N]"
 	if #multi_selection > 0 then
 		for _, session_data in pairs(multi_selection) do
 			table.insert(ids_to_kill, session_data.value.id)
 			table.insert(names_to_kill, session_data.value.name)
 		end
 	else
-		prompt = "Want to kill session:\n'" .. selection.value.name .. "'? y/N"
+		prompt = "Kill session:\n'" .. selection.value.name .. "'? [y/N]"
 		table.insert(ids_to_kill, selection.value.id)
 		table.insert(names_to_kill, selection.value.name)
 	end
