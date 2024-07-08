@@ -33,6 +33,10 @@ function PersistentState:new(opts, cache_file)
 end
 
 function PersistentState:get()
+  if not utils.file_exists(self.cache_file) then
+    return {}
+  end
+
   local content, err = persist.load_table(self.cache_file)
   if err then
     self.__notifier("Failed to read cache file (" .. self.cache_file .. "): " .. err, vim.log.levels.error)

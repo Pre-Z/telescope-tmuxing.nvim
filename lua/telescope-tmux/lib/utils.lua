@@ -54,4 +54,20 @@ utils.close_telescope_or_refresh = function(opts, prompt_bufnr, finder)
 	end
 end
 
+---@param session_string string
+---@return string | nil, string | nil, string | nil, string | nil
+utils.get_tmux_session_data_parts = function(session_string)
+	for session_id, session_name, window_id, window_name in
+		string.gmatch(session_string, "([^:]*):([^:]*):([^:]*):([^:]*)")
+	do
+		return session_id, session_name, window_id, window_name
+	end
+end
+
+---@param filename string
+---@return boolean
+utils.file_exists = function (filename)
+    return vim.fn.filereadable(filename) == 1
+end
+
 return utils
