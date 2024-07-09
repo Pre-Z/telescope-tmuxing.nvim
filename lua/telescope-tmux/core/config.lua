@@ -1,10 +1,15 @@
--- local utils = require("telescope-tmux.lib.utils")
 local config = {}
 local helper = require("telescope-tmux.lib.helper")
+local enum = require("telescope-tmux.core.enums")
 
 local __session_sort_possible_values = {
-	"last_used",
-	"name",
+	enum.session.order.default_name,
+	enum.session.order.usage,
+}
+
+local __session_listing_possible_values = {
+	enum.session.listing.advanced,
+	enum.session.listing.simple,
 }
 
 ---@class NvimNotifyOptions
@@ -30,16 +35,17 @@ local __session_sort_possible_values = {
 ---@field create_session CreateSessionOptions
 local __TmuxDefaultConfig = {
 	cache_folder = vim.api.nvim_call_function("stdpath", { "cache" }) .. "/telescope-tmuxing",
-	sort_sessions = "last_used", -- possible options: "last_used", "name"
-  keep_telescope_open = true, -- after quick actions (e.g. deleting/renaming session) keep telescope window open
+	sort_sessions = "last_used", -- possible options: "last_used", "session_name"
+	keep_telescope_open = true, -- after quick actions (e.g. deleting/renaming session) keep telescope window open
+	list_sessions = enum.session.listing.simple, -- options: "only_sessions", "with_windows"
 	create_session = { -- plenary configuration options
-    scan_paths = { "." },
-    scan_pattern = nil,
-    scan_depth = 1,
-    respect_gitignore = true,
-    include_hidden_dirs = false,
-    only_dirs = true,
-    previewer_command = { "ls", "-la", }
+		scan_paths = { "." },
+		scan_pattern = nil,
+		scan_depth = 1,
+		respect_gitignore = true,
+		include_hidden_dirs = false,
+		only_dirs = true,
+		previewer_command = { "ls", "-la" },
 	},
 	nvim_notify = {
 		icon = "﬿",
@@ -47,13 +53,31 @@ local __TmuxDefaultConfig = {
 		timeout = 3000,
 	},
 	layout_strategy = "horizontal",
-	layout_config = { preview_width = 0.8 },
+	layout_config = { preview_width = 0.78 },
 }
 
 config.validate_config = function()
 	if not vim.tbl_contains(__session_sort_possible_values, config.opts.sort_sessions) then
+    local fallback_sorting_type = enum.session.order.usage
 		error(
-			"Telescope-Tmux: Invalid 'sort_sessions' option was given with value: " .. config.opts.sort_sessions,
+			"Telescope-Tmuxing: Invalid 'sort_sessions' option was given with value: "
+				.. config.opts.sort_sessions
+				.. ". Fallbacking to: '"
+				.. fallback_sorting_type
+				.. "'",
+			vim.log.levels.ERROR
+		)
+	end
+
+	if not vim.tbl_contains(__session_listing_possible_values, config.opts.list_sessions) then
+		local simple_listing = enum.session.listing.simple
+		config.opts.list_sessions = simple_listing -- defaulting to simple
+		error(
+			"Telescope-Tmuxing: Invalid session listing options was given: "
+				.. config.opts.list_sessions
+				.. ". Fallbacking to: '"
+				.. simple_listing
+				.. "' listing type",
 			vim.log.levels.ERROR
 		)
 	end

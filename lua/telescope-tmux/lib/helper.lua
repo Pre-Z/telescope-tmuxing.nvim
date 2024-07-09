@@ -40,6 +40,16 @@ local __get_sorter_iterator = function(sorter_function)
 	return __get_next_ordered_pairs
 end
 
+M.reverse_sort_table = function(tbl)
+	local keys = {}
+	for k in pairs(tbl) do
+		table.insert(keys, k)
+	end
+	table.sort(keys, function(a, b)
+		return a > b
+	end)
+end
+
 M.shallow_copy_table = function(orig)
     local orig_type = type(orig)
     local copy

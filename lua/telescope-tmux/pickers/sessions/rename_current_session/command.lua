@@ -9,7 +9,7 @@ return RenameCurrentSessionCommand:new({
 	command = function(opts)
 		opts = opts or {}
 		local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
-		local TmuxState = require("telescope-tmux.core.tmux-state"):new()
+		local TmuxState = require("telescope-tmux.core.tmux-state"):new(opts)
 		local utils = require("telescope-tmux.lib.utils")
 
 		if
@@ -31,7 +31,9 @@ return RenameCurrentSessionCommand:new({
 			end
 		end
 
-    local current_name = TmuxSessions:get_session_data_by_id(current_session_id).name
+    local data = TmuxSessions:get_session_data_by_id(current_session_id)
+    local current_name = data.session_name
+
 		popup.show_input_center({
 			prompt = "Rename current session to:",
       default = current_name,

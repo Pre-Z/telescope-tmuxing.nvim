@@ -9,7 +9,7 @@ return KillCurrentSessionCommand:new({
 	command = function(opts)
 		opts = opts or {}
 		local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
-		local TmuxState = require("telescope-tmux.core.tmux-state"):new()
+		local TmuxState = require("telescope-tmux.core.tmux-state"):new(opts)
 		local utils = require("telescope-tmux.lib.utils")
 
 		if utils.notified_user_about_session(opts, "Not in a Tmux session, nothing to kill", vim.log.levels.ERROR) then
@@ -25,7 +25,7 @@ return KillCurrentSessionCommand:new({
 				return
 			end
 
-			local err = TmuxSessions:switch_to_session_and_kill_current(previous_session.id)
+			local err = TmuxSessions:switch_to_session_and_kill_current(previous_session.session_id)
 			if err then
 				notifier("Failed to switch to previous session and kill current: " .. err, vim.log.levels.ERROR)
 			end

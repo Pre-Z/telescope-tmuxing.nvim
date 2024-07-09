@@ -2,23 +2,19 @@ local persist = require("telescope-tmux.lib.persist")
 local utils = require("telescope-tmux.lib.utils")
 local config = require("telescope-tmux.core.config")
 
-local prepare_cache_folder = function (config)
+local prepare_cache_folder = function (conf)
   -- prepare the cache folder
-  if vim.fn.isdirectory(config.cache_folder) == 0 then
-		vim.fn.mkdir(config.cache_folder, "p")
+  if vim.fn.isdirectory(conf.cache_folder) == 0 then
+		vim.fn.mkdir(conf.cache_folder, "p")
 	end
 end
 
----@class PersistentState
----@field get function
----@field write function
----@field cache_file string
----@field __notifier function
 local PersistentState = {}
 PersistentState.__index = PersistentState
 
 ---@param opts table
 ---@param cache_file string
+---@return PersistentState
 function PersistentState:new(opts, cache_file)
   local obj = {}
   local conf = config.reinit_config(opts).opts

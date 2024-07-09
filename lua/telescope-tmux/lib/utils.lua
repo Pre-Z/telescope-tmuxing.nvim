@@ -31,7 +31,7 @@ end
 ---@return boolean
 utils.notified_user_about_session = function(opts, message, log_level)
 	local notifier = utils.get_notifier(opts)
-	local TmuxState = require("telescope-tmux.core.tmux-state"):new()
+	local TmuxState = require("telescope-tmux.core.tmux-state"):new(opts)
 
 	if not TmuxState:in_tmux_session() then
 		notifier(message, log_level)

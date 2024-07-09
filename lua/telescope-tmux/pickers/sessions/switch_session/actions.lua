@@ -18,7 +18,7 @@ SwitchActions.on_select = function(prompt_bufnr, opts)
 	then
 		local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
 		local selection = action_state.get_selected_entry()
-		local err = TmuxSessions:switch_session(selection.value.id)
+		local err = TmuxSessions:switch_session(selection.value.session_id, selection.value.window_id)
 		if err ~= nil then
 			local notifier = utils.get_notifier(opts)
 			notifier(err, vim.log.levels.ERROR)
@@ -35,7 +35,7 @@ SwitchActions.rename_session = function(prompt_bufnr, opts)
 			return
 		end
 		local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
-		local err = TmuxSessions:rename_session(selection.value.id, new_name)
+		local err = TmuxSessions:rename_session(selection.value.session_id, new_name)
 		if err then
 			local notifier = utils.get_notifier(opts)
 			notifier("Failed to rename session: " .. err, vim.log.levels.ERROR)
@@ -46,7 +46,7 @@ SwitchActions.rename_session = function(prompt_bufnr, opts)
 
 	popup.show_input({
 		prompt = "New name:",
-		default = selection.value.name,
+		default = selection.value.session_name,
 	}, rename_callback)
 end
 
@@ -60,13 +60,18 @@ SwitchActions.kill_session = function(prompt_bufnr, opts)
 	local prompt = "Kill the selected\nsessions? [y/N]"
 	if #multi_selection > 0 then
 		for _, session_data in pairs(multi_selection) do
-			table.insert(ids_to_kill, session_data.value.id)
-			table.insert(names_to_kill, session_data.value.name)
+			table.insert(ids_to_kill, session_data.value.session_id)
+			table.insert(names_to_kill, session_data.value.session_name)
 		end
 	else
-		prompt = "Kill session:\n'" .. selection.value.name .. "'? [y/N]"
-		table.insert(ids_to_kill, selection.value.id)
-		table.insert(names_to_kill, selection.value.name)
+    -- TODO: make this name cut be dynamic
+    local shortened_name = string.sub(selection.value.session_name, 1, 22)
+    if string.len(shortened_name) < string.len(selection.value.session_name) then
+      shortened_name = shortened_name .. "..."
+    end
+		prompt = "Kill session:\n'" .. shortened_name .. "'? [y/N]"
+		table.insert(ids_to_kill, selection.value.session_id)
+		table.insert(names_to_kill, selection.value.session_name)
 	end
 
 	local kill_cb = function(answer)

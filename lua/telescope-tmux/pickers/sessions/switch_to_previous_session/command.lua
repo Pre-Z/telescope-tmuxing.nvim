@@ -8,7 +8,7 @@ return SwitchCommand:new({
 	command = function(opts)
 		opts = opts or {}
 		local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
-		local TmuxState = require("telescope-tmux.core.tmux-state"):new()
+		local TmuxState = require("telescope-tmux.core.tmux-state"):new(opts)
 		local utils = require("telescope-tmux.lib.utils")
 
 		if

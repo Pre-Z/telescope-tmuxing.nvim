@@ -3,7 +3,7 @@ local utils = require("telescope-tmux.lib.utils")
 
 return function(opts)
 	local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
-	local TmuxState = require("telescope-tmux.core.tmux-state"):new()
+	local TmuxState = require("telescope-tmux.core.tmux-state"):new(opts)
 
 	utils.notified_user_about_session(
 		opts,
@@ -11,7 +11,8 @@ return function(opts)
 		vim.log.levels.ERROR
 	)
 
-	local results = TmuxSessions:list_sessions()
+	-- local results = TmuxSessions:list_sessions()
+	local results = TmuxSessions:list_sessions_with_windows()
 
   local decide_if_valid = function (id)
     -- if not in tmux state do not exclude any session
@@ -28,9 +29,9 @@ return function(opts)
 		entry_maker = function(item)
 			return {
 				value = item,
-				display = item.name,
-				ordinal = item.name,
-				valid = decide_if_valid(item.id),
+				display = item.display,
+				ordinal = item. ordinal and item.ordinal or item.name,
+				valid = decide_if_valid(item.session_id),
 			}
 		end,
 	})
