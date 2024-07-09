@@ -2,16 +2,23 @@ local M = {}
 
 M.session = {}
 
----@enum SessionOrderTypes
+---@enum SessionsOrderBy
 M.session.order = {
   usage = "last_used",
   default_name = "session_name",
 }
 
----@enum SessionListingOptions
-M.session.listing = {
+M.session.listing = {}
+
+---@enum SessionsListingOptions
+M.session.listing.type = {
   simple = "only_sessions",
   advanced = "with_windows",
+}
+
+M.session.listing.title = {
+  [M.session.listing.type.simple] = "Other Active Tmux Sessions",
+  [M.session.listing.type.advanced] = "Active Tmux Sessions & Windows",
 }
 
 return M

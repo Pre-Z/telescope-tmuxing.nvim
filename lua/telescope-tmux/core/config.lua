@@ -8,8 +8,8 @@ local __session_sort_possible_values = {
 }
 
 local __session_listing_possible_values = {
-	enum.session.listing.advanced,
-	enum.session.listing.simple,
+	enum.session.listing.type.advanced,
+	enum.session.listing.type.simple,
 }
 
 ---@class NvimNotifyOptions
@@ -30,14 +30,15 @@ local __session_listing_possible_values = {
 ---@field cache_folder string
 ---@field nvim_notify NvimNotifyOptions
 ---@field layout_strategy string
----@field sort_sessions "last_used" | "name"
+---@field list_sessions SessionsListingOptions
+---@field sort_sessions SessionsOrderBy
 ---@field keep_telescope_win_open boolean
 ---@field create_session CreateSessionOptions
 local __TmuxDefaultConfig = {
-	cache_folder = vim.api.nvim_call_function("stdpath", { "cache" }) .. "/telescope-tmuxing",
+	cache_folder = vim.api.nvim_call_function("stdpath", { "state" }) .. "/telescope-tmuxing",
 	sort_sessions = "last_used", -- possible options: "last_used", "session_name"
 	keep_telescope_open = true, -- after quick actions (e.g. deleting/renaming session) keep telescope window open
-	list_sessions = enum.session.listing.simple, -- options: "only_sessions", "with_windows"
+	list_sessions = "with_windows", -- options: "only_sessions", "with_windows"
 	create_session = { -- plenary configuration options
 		scan_paths = { "." },
 		scan_pattern = nil,
@@ -58,7 +59,7 @@ local __TmuxDefaultConfig = {
 
 config.validate_config = function()
 	if not vim.tbl_contains(__session_sort_possible_values, config.opts.sort_sessions) then
-    local fallback_sorting_type = enum.session.order.usage
+		local fallback_sorting_type = enum.session.order.usage
 		error(
 			"Telescope-Tmuxing: Invalid 'sort_sessions' option was given with value: "
 				.. config.opts.sort_sessions
@@ -70,7 +71,7 @@ config.validate_config = function()
 	end
 
 	if not vim.tbl_contains(__session_listing_possible_values, config.opts.list_sessions) then
-		local simple_listing = enum.session.listing.simple
+		local simple_listing = enum.session.listing.type.simple
 		config.opts.list_sessions = simple_listing -- defaulting to simple
 		error(
 			"Telescope-Tmuxing: Invalid session listing options was given: "

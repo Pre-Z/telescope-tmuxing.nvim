@@ -11,8 +11,7 @@ return function(opts)
 		vim.log.levels.ERROR
 	)
 
-	-- local results = TmuxSessions:list_sessions()
-	local results = TmuxSessions:list_sessions_with_windows()
+	local results = TmuxSessions:list_sessions(opts)
 
   local decide_if_valid = function (id)
     -- if not in tmux state do not exclude any session
@@ -30,7 +29,7 @@ return function(opts)
 			return {
 				value = item,
 				display = item.display,
-				ordinal = item. ordinal and item.ordinal or item.name,
+				ordinal = item. ordinal and item.ordinal or item.session_name,
 				valid = decide_if_valid(item.session_id),
 			}
 		end,

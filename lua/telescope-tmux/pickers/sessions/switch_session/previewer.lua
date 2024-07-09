@@ -3,7 +3,7 @@ local tutils = require("telescope.utils")
 
 return previewers.new_buffer_previewer({
   -- the main implementation for this is taken from https://github.com/camgraff/telescope-tmux.nvim/blob/cf857c1d28f6a5b0fd78ecb9d7c03fe95aa8eb3e/lua/telescope/_extensions/tmux/windows.lua
-	define_preview = function(self, entry, status)
+	define_preview = function(self, entry, _)
 		-- We have to set the window buf manually to avoid a race condition where we try to attach to
 		-- the tmux sessions before the buffer has been set in the window. This is because Telescope
 		-- calls nvim_win_set_buf inside vim.schedule()

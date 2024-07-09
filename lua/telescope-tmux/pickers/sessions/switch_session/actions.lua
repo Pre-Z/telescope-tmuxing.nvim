@@ -3,6 +3,7 @@ local action_state = require("telescope.actions.state")
 local utils = require("telescope-tmux.lib.utils")
 local popup = require("telescope-tmux.lib.popup")
 local finder = require("telescope-tmux.pickers.sessions.switch_session.finder")
+local config = require("telescope-tmux.core.config")
 
 local SwitchActions = {}
 

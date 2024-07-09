@@ -54,9 +54,21 @@ local __get_ordered_list = function(list, order_property, second_order_property)
 end
 
 ---@return TmuxSessionTable[]
-function TmuxSessions:list_sessions()
+function TmuxSessions:list_sessions(opts)
+  local conf = config.reinit_config(opts).opts
+  if conf.list_sessions == enum.session.listing.type.simple then
+    return self:list_sessions_simple()
+  elseif conf.list_sessions == enum.session.listing.type.advanced then
+    return self:list_sessions_with_windows()
+  else
+    return {}
+  end
+end
+
+---@return TmuxSessionTable[]
+function TmuxSessions:list_sessions_simple()
 	local mapped_list = vim.tbl_map(function(tbl)
-		tbl.display = tbl.name
+		tbl.display = tbl.session_name
 		return tbl
 	end, __get_ordered_list(self.tstate:get_session_list(), self.sort_by))
   return mapped_list
@@ -112,7 +124,7 @@ function TmuxSessions:list_sessions_with_windows()
 		local ordered_windows = __get_ordered_list(windows_to_process, self.sort_by, "window_name")
 
 		-- first add the session itself
-		local connector = #ordered_windows == 0 and " ━▶ " or " ┏▶ "
+		local connector = #ordered_windows == 0 and " ━ " or " ┏ "
 		table.insert(final_list, {
 			display = session_details.session_name .. connector .. active_window_name,
 			session_name = session_details.session_name,
@@ -126,7 +138,7 @@ function TmuxSessions:list_sessions_with_windows()
 		for index, window in pairs(ordered_windows) do
 			-- onpy add window if it is not the active one, since it is being showed by the main session
 			local separator = string.rep(" ", string.len(session_details.session_name))
-			connector = index < #ordered_windows and " ┣▶ " or " ┗▶ "
+			connector = index < #ordered_windows and " ┣ " or " ┗ "
 			local name = separator .. connector .. window.window_name
 			table.insert(final_list, {
 				session_id = session_details.session_id,
