@@ -28,6 +28,7 @@
 ---@class TmuxSessions
 ---@field sort_by string
 ---@field tstate TmuxState
+---@field windows TmuxWindow
 ---@field __notifier function
 
 ---@class TmuxWindow
@@ -58,3 +59,11 @@
 ---@field sort_windows WindowsSortBy
 ---@field create_session CreateSessionOptions
 
+---@class SessionLastUsedUpdateTable
+---@field session_id string
+---@field last_used number
+
+---@class WindowLastUsedUpdateTable
+---@field session_id string
+---@field window_id string
+---@field last_used number

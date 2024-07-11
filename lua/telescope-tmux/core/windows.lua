@@ -33,23 +33,25 @@ function TmuxWindows:list_windows_of_session_id(session_id)
   end, utils.order_list_by_property(window_list, self.sort_by, enum.sorting.session_name))
 end
 
-
 ---@param session_id string
 ---@param window_id string
+---@param current_time number?
 ---@return nil | string
-function TmuxWindows:switch_window(session_id, window_id)
+function TmuxWindows:switch_window(session_id, window_id, current_time)
 	local window_to_switch_to = self.tstate:get_window_details_by_ids(session_id, window_id)
 	if window_to_switch_to == nil then
 		return string.format("Cannot switch window, no window found with id: %s under session %s", window_id, session_id)
 	end
 
-	local current_time = os.time()
+	current_time = current_time or os.time()
 	local current_window_id = self.tstate:get_window_id()
   local current_session_id = self.tstate:get_session_id()
 	local update_last_used_list = {}
+
   table.insert(update_last_used_list, { session_id = current_session_id, window_id = current_window_id, last_used = current_time - 1 })
 	table.insert(update_last_used_list, { session_id = session_id, window_id = window_id, last_used = current_time })
-	self.tstate:set_last_used_time_for_sessions(update_last_used_list)
+
+	self.tstate:set_last_used_time_for_windows(update_last_used_list)
 	local id = session_id .. ":" .. window_id
 	local command = string.format("silent !tmux switch-client -t '%s' -c '%s'", id, self.tstate:get_client_tty())
 	vim.cmd(command)

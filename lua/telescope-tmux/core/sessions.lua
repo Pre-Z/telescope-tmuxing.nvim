@@ -16,12 +16,12 @@ function TmuxSessions:new(opts)
 	local obj = {}
 	self.tstate = require("telescope-tmux.core.tmux-state"):new(conf)
 	self.sort_by = conf.opts.sort_sessions
+  self.windows = require("telescope-tmux.core.windows"):new(opts)
 	self.__notifier = utils.get_notifier(opts)
 
 	setmetatable(obj, self)
 	return obj
 end
-
 
 ---@return TmuxSessionTable[]
 function TmuxSessions:list_sessions(opts)
@@ -68,49 +68,8 @@ end
 --   return final_list
 -- end
 
-
-
--- for debugging purpose
-function table_print(tt, indent, done)
-  done = done or {}
-  indent = indent or 0
-  if type(tt) == "table" then
-    local sb = {}
-    for key, value in pairs(tt) do
-      table.insert(sb, string.rep(" ", indent)) -- indent it
-      if type(value) == "table" and not done[value] then
-        done[value] = true
-        table.insert(sb, key .. " = {\n")
-        table.insert(sb, table_print(value, indent + 2, done))
-        table.insert(sb, string.rep(" ", indent)) -- indent it
-        table.insert(sb, "}\n")
-      elseif "number" == type(key) then
-        table.insert(sb, string.format('"%s"\n', tostring(value)))
-      else
-        table.insert(sb, string.format('%s = "%s"\n', tostring(key), tostring(value)))
-      end
-    end
-    return table.concat(sb)
-  else
-    return tt .. "\n"
-  end
-end
-
-table_to_string = function(tbl)
-  if "nil" == type(tbl) then
-    return tostring(nil)
-  elseif "table" == type(tbl) then
-    return table_print(tbl)
-  elseif "string" == type(tbl) then
-    return tbl
-  else
-    return tostring(tbl)
-  end
-end
-
 function TmuxSessions:list_sessions_with_windows()
 	local session_list = utils.order_list_by_property(self.tstate:get_session_list(), self.sort_by, enum.session.sorting.session_name)
-  print("the session_list:\n" .. table_to_string(session_list))
 	local final_list = {}
 	for _, session_details in pairs(session_list) do
 		local window_list = {}
@@ -277,6 +236,9 @@ function TmuxSessions:switch_session(session_id, window_id)
 	end
 	table.insert(update_last_used_list, { session_id = session_id, last_used = current_time })
 	self.tstate:set_last_used_time_for_sessions(update_last_used_list)
+  if window_id then
+    self.windows:switch_window(session_id, window_id, current_time)
+  end
 	local id = window_id and session_id .. ":" .. window_id or session_id
 	local command = string.format("silent !tmux switch-client -t '%s' -c '%s'", id, self.tstate:get_client_tty())
 	vim.cmd(command)

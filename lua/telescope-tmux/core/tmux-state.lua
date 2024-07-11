@@ -158,15 +158,21 @@ function TmuxState:update_states()
   self.pstate:write(__sessions_by_id)
 end
 
----@class SessionLastUsedUpdateTable
----@field session_id string
----@field last_used number
-
 ---@param update_list SessionLastUsedUpdateTable[]
 function TmuxState:set_last_used_time_for_sessions(update_list)
   for _, session in pairs(update_list) do
     if session.session_id then
       __sessions_by_id[session.session_id].last_used = session.last_used
+    end
+  end
+  self:update_states()
+end
+
+---@param update_list WindowLastUsedUpdateTable[]
+function TmuxState:set_last_used_time_for_windows(update_list)
+  for _, window_details in pairs(update_list) do
+    if window_details.session_id and window_details.window_id then
+      __sessions_by_id[window_details.session_id].windows[window_details.window_id].last_used = window_details.last_used
     end
   end
   self:update_states()
