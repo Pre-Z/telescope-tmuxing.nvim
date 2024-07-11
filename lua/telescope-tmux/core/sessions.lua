@@ -1,6 +1,5 @@
 local tutils = require("telescope.utils")
 local helper = require("telescope-tmux.lib.helper")
-local TmuxState = require("telescope-tmux.core.tmux-state")
 local config = require("telescope-tmux.core.config")
 local utils = require("telescope-tmux.lib.utils")
 local enum = require("telescope-tmux.core.enums")
@@ -181,7 +180,7 @@ function TmuxSessions:rename_session(session_id, new_name)
 		new_name,
 	})
 
-	err = err[1]
+	err = err and err[1]
 	if not err then
 		self.tstate:update_states()
 	end
@@ -198,7 +197,7 @@ function TmuxSessions:kill_session(session_id)
 		session_id,
 	})
 
-	err = err[1]
+	err = err and err[1]
 
 	if not err then
 		self.tstate:update_states()
