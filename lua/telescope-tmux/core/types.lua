@@ -11,9 +11,12 @@
 
 ---@class TmuxSessionTable
 ---@field session_id string
----@field sesssion_name string
+---@field session_name string
 ---@field last_used number
 ---@field windows table<string, TmuxWindowTable> -- windows by window_id
+---@field window_list TmuxWindowTable[]
+
+---@class TmuxSessionById<string, TmuxSessionTable>
 
 ---@class TmuxSessionDetails
 ---@field session_name string | nil
@@ -26,4 +29,32 @@
 ---@field sort_by string
 ---@field tstate TmuxState
 ---@field __notifier function
+
+---@class TmuxWindow
+---@field sort_by SessionsListingOptions
+---@field tstate TmuxState
+---@field __notifier function
+
+---@class NvimNotifyOptions
+---@field icon string
+---@field title string
+---@field timeout number miliseconds
+
+---@class CreateSessionOptions
+---@field scan_paths string[]
+---@field scan_pattern? string | string[] | function
+---@field scan_depth number
+---@field respect_gitignore boolean
+---@field only_dirs boolean
+---@field include_hidden_dirs boolean
+---@field previewer_command string[]
+
+---@class TmuxConfig
+---@field cache_folder string
+---@field nvim_notify NvimNotifyOptions
+---@field layout_strategy string
+---@field list_sessions SessionsListingOptions
+---@field sort_sessions SessionsSortBy
+---@field sort_windows WindowsSortBy
+---@field create_session CreateSessionOptions
 

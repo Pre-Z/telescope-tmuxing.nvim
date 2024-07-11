@@ -5,7 +5,7 @@ return function(opts)
 	local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
 	local TmuxState = require("telescope-tmux.core.tmux-state"):new(opts)
 
-	utils.notified_user_about_session(
+	utils.notified_user_about_not_in_tmux_session(
 		opts,
 		"Not in a Tmux session, session switch is not possible",
 		vim.log.levels.ERROR

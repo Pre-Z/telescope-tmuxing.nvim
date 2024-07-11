@@ -12,7 +12,7 @@ return SwitchCommand:new({
 		local utils = require("telescope-tmux.lib.utils")
 
 		if
-			utils.notified_user_about_session(
+			utils.notified_user_about_not_in_tmux_session(
 				opts,
 				"Not in a Tmux session, session switch is not possible",
 				vim.log.levels.ERROR

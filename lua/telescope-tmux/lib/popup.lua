@@ -4,7 +4,7 @@ local dressing_available, dressing = pcall(require, "dressing")
 
 ---@class InputOptions
 ---@field prompt string
----@field default unknown
+---@field default unknown?
 
 ---@param opts InputOptions
 ---@param callback function

@@ -5,6 +5,7 @@ local config = require("telescope-tmux.core.config")
 local utils = require("telescope-tmux.lib.utils")
 local enum = require("telescope-tmux.core.enums")
 
+---@class TmuxSessions
 local TmuxSessions = {}
 TmuxSessions.__index = TmuxSessions
 
@@ -13,7 +14,7 @@ function TmuxSessions:new(opts)
 	local conf = config.reinit_config(opts)
 
 	local obj = {}
-	self.tstate = TmuxState:new(conf)
+	self.tstate = require("telescope-tmux.core.tmux-state"):new(conf)
 	self.sort_by = conf.opts.sort_sessions
 	self.__notifier = utils.get_notifier(opts)
 
@@ -21,44 +22,13 @@ function TmuxSessions:new(opts)
 	return obj
 end
 
----@param list TmuxSessionTable[]
----@param order_property string
----@param second_order_property string?
-local __get_ordered_list = function(list, order_property, second_order_property)
-	-- no need to prepare for multiple sessions under the same name, since tmux does not let it to happen,
-	-- in any other cases the primary and secondary ordering properties will be different
-	second_order_property = second_order_property and second_order_property or enum.session.order.default_name
-	-- TODO: maybe deepcopy is needed
-	local ordered_list = helper.shallow_copy_table(list)
-	-- local sessions_by_order_property = {}
-
-	table.sort(ordered_list, function(a, b)
-		if a[order_property] == b[order_property] then
-			if string.find(second_order_property, "name") then
-				return a[second_order_property]:lower() < b[second_order_property]:lower()
-			end
-			return a[second_order_property] < b[second_order_property]
-		else
-			-- the last used should be the first in the list
-			if order_property == enum.session.order.usage then
-				return a[order_property] > b[order_property]
-			elseif string.find(order_property, "name") then
-				return a[order_property]:lower() < b[order_property]:lower()
-			else
-				return a[order_property] < b[order_property]
-			end
-		end
-	end)
-
-	return ordered_list
-end
 
 ---@return TmuxSessionTable[]
 function TmuxSessions:list_sessions(opts)
   local conf = config.reinit_config(opts).opts
   if conf.list_sessions == enum.session.listing.type.simple then
     return self:list_sessions_simple()
-  elseif conf.list_sessions == enum.session.listing.type.advanced then
+  elseif conf.list_sessions == enum.session.listing.type.full then
     return self:list_sessions_with_windows()
   else
     return {}
@@ -69,8 +39,9 @@ end
 function TmuxSessions:list_sessions_simple()
 	local mapped_list = vim.tbl_map(function(tbl)
 		tbl.display = tbl.session_name
+    tbl.kind = 'root'
 		return tbl
-	end, __get_ordered_list(self.tstate:get_session_list(), self.sort_by))
+	end, utils.order_list_by_property(self.tstate:get_session_list(), self.sort_by, enum.session.sorting.session_name))
   return mapped_list
 end
 
@@ -97,15 +68,49 @@ end
 --   return final_list
 -- end
 
-local __get_active_window_id_name_of_a_session = function(session_id)
-	local window_id_name = tutils.get_os_command_output({ "tmux", "display-message", "-t", session_id, "-p", "#{window_id}:#{window_name}" })[1]
-  for id, name in string.gmatch(window_id_name, "([^:]*):([^:]*)") do
-    return id, name
+
+
+-- for debugging purpose
+function table_print(tt, indent, done)
+  done = done or {}
+  indent = indent or 0
+  if type(tt) == "table" then
+    local sb = {}
+    for key, value in pairs(tt) do
+      table.insert(sb, string.rep(" ", indent)) -- indent it
+      if type(value) == "table" and not done[value] then
+        done[value] = true
+        table.insert(sb, key .. " = {\n")
+        table.insert(sb, table_print(value, indent + 2, done))
+        table.insert(sb, string.rep(" ", indent)) -- indent it
+        table.insert(sb, "}\n")
+      elseif "number" == type(key) then
+        table.insert(sb, string.format('"%s"\n', tostring(value)))
+      else
+        table.insert(sb, string.format('%s = "%s"\n', tostring(key), tostring(value)))
+      end
+    end
+    return table.concat(sb)
+  else
+    return tt .. "\n"
+  end
+end
+
+table_to_string = function(tbl)
+  if "nil" == type(tbl) then
+    return tostring(nil)
+  elseif "table" == type(tbl) then
+    return table_print(tbl)
+  elseif "string" == type(tbl) then
+    return tbl
+  else
+    return tostring(tbl)
   end
 end
 
 function TmuxSessions:list_sessions_with_windows()
-	local session_list = __get_ordered_list(self.tstate:get_session_list(), self.sort_by)
+	local session_list = utils.order_list_by_property(self.tstate:get_session_list(), self.sort_by, enum.session.sorting.session_name)
+  print("the session_list:\n" .. table_to_string(session_list))
 	local final_list = {}
 	for _, session_details in pairs(session_list) do
 		local window_list = {}
@@ -113,7 +118,9 @@ function TmuxSessions:list_sessions_with_windows()
 			table.insert(window_list, details)
 		end
 
-		local active_window_id, active_window_name = __get_active_window_id_name_of_a_session(session_details.session_id)
+		local active_window_details = self.tstate:get_active_window_details_of_a_session(session_details.session_id)
+    local active_window_name = active_window_details.window_name
+    local active_window_id = active_window_details.window_id
 		local windows_to_process = {}
 
 		for _, window in pairs(window_list) do
@@ -121,7 +128,7 @@ function TmuxSessions:list_sessions_with_windows()
 				table.insert(windows_to_process, window)
 			end
 		end
-		local ordered_windows = __get_ordered_list(windows_to_process, self.sort_by, "window_name")
+		local ordered_windows = utils.order_list_by_property(windows_to_process, self.sort_by, enum.session.sorting.window_name)
 
 		-- first add the session itself
 		local connector = #ordered_windows == 0 and " ━ " or " ┏ "
@@ -130,6 +137,7 @@ function TmuxSessions:list_sessions_with_windows()
 			session_name = session_details.session_name,
 			window_name = active_window_name,
       window_id = active_window_id,
+      kind = enum.session.entity.kind.main,
 			ordinal = session_details.session_name,
 			session_id = session_details.session_id,
 			last_used = session_details.last_used,
@@ -145,6 +153,7 @@ function TmuxSessions:list_sessions_with_windows()
 				session_name = session_details.session_name,
 				window_name = window.window_name,
 				display = name,
+        kind = enum.session.entity.kind.sub,
 				ordinal = session_details.session_name .. " " .. name,
 				window_id = window.window_id,
 				last_used = window.last_used,
@@ -277,7 +286,7 @@ function TmuxSessions:get_previous_session()
 	local current_session_id = self.tstate:get_session_id()
 	local previous_session = nil
 
-	for _, v in pairs(__get_ordered_list(self.tstate:get_session_list(), "last_used")) do
+	for _, v in pairs(utils.order_list_by_property(self.tstate:get_session_list(), "last_used", "session_name")) do
 		if v.session_id ~= current_session_id then
 			previous_session = v
 			break

@@ -1,23 +1,21 @@
-local previewers = require("telescope.previewers")
-local tutils = require("telescope.utils")
+local previewers = require("telescope-tmux.core.base-previewers")
+local config = require("telescope-tmux.core.config")
+local enum = require("telescope-tmux.core.enums")
 
-return previewers.new_buffer_previewer({
-  -- the main implementation for this is taken from https://github.com/camgraff/telescope-tmux.nvim/blob/cf857c1d28f6a5b0fd78ecb9d7c03fe95aa8eb3e/lua/telescope/_extensions/tmux/windows.lua
-	define_preview = function(self, entry, _)
-		-- We have to set the window buf manually to avoid a race condition where we try to attach to
-		-- the tmux sessions before the buffer has been set in the window. This is because Telescope
-		-- calls nvim_win_set_buf inside vim.schedule()
-		vim.api.nvim_win_set_buf(self.state.winid, self.state.bufnr)
-		vim.api.nvim_buf_call(self.state.bufnr, function()
-			-- kil the job running in previous previewer
-			if tutils.job_is_running(self.state.termopen_id) then
-				vim.fn.jobstop(self.state.termopen_id)
-			end
+return function (opts)
+  local conf = config.reinit_config(opts).opts
+  if conf.list_sessions == enum.session.listing.type.full then
+    local TmuxState = require("telescope-tmux.core.tmux-state"):new(opts)
 
-			local session_id = entry.value.window_id and entry.value.session_id .. ":" .. entry.value.window_id
-				or entry.value.session_id
+    local base_index = TmuxState:get_base_index()
+    local previewer_session_name = "telescope_tmuxing_previewer_session"
 
-			self.state.termopen_id = vim.fn.termopen(string.format("tmux attach-session -t '%s' -r", session_id))
-		end)
-	end,
-})
+    return previewers.get_buffer_previewer(base_index, previewer_session_name, "window_id")
+  end
+
+  return previewers.get_terminal_previewer("session_id")
+end
+
+
+
+

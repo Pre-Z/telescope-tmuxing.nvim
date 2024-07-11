@@ -9,6 +9,7 @@ local prepare_cache_folder = function (conf)
 	end
 end
 
+---@class PersistentState
 local PersistentState = {}
 PersistentState.__index = PersistentState
 
