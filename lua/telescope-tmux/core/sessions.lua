@@ -1,318 +1,289 @@
-local tutils = require("telescope.utils")
-local helper = require("telescope-tmux.lib.helper")
-local TmuxState = require("telescope-tmux.core.tmux-state"):new()
-local PersistentState = require("telescope-tmux.core.persistent-state")
 local config = require("telescope-tmux.core.config")
+local enums = require("telescope-tmux.core.enums")
+local helper = require("telescope-tmux.lib.helper")
+local tutils = require("telescope.utils")
 local utils = require("telescope-tmux.lib.utils")
 
----@class TmuxSessionTable
----@fields id string
----@fields name string
----@fields last_used number
-
----@type TmuxSessionTable[]
-local __session_list = {}
-
----@class TmuxSessionsById
-local __sessions_by_id = {}
-
----@param session_id string
----@param session_name string
-local __add_session_to_session_cache = function(session_id, session_name)
-	if __sessions_by_id[session_id] then
-		__sessions_by_id[session_id].name = session_name -- force update the session_name
-		-- __sessions_by_id[session_id].last_used = 0 -- reset the last_used?
-	else
-		__sessions_by_id[session_id] = { name = session_name, last_used = 0, id = session_id }
-	end
-	table.insert(__session_list, __sessions_by_id[session_id])
-end
-
----@param session_string string
----@return string, string
-local __get_session_id_name_pairs = function(session_string)
-	for id, name in string.gmatch(session_string, "($%d+):(.+)") do
-		return id, name
-	end
-end
-
----@param session_id string
----@param session_name string
-local __add_session_to_session_cache_and_pstate = function(session_id, session_name, pstate)
-	__add_session_to_session_cache(session_id, session_name)
-	pstate:write(__sessions_by_id)
-end
-
-local __merge_live_state_with_in_memory_state = function()
-	local tmux_sessions_string_list, _, err =
-		tutils.get_os_command_output({ "tmux", "list-sessions", "-F", "#{session_id}:#{session_name}" })
-
-	err = err[1]
-	if err then
-		return {}
-	end
-
-	local active_tmux_session_list = {}
-
-	for _, session_string in pairs(tmux_sessions_string_list) do
-		local id, name = __get_session_id_name_pairs(session_string)
-		if id ~= nil then
-			active_tmux_session_list[id] = name
-		end
-	end
-
-	__session_list = {} -- empty current list
-
-	for id in pairs(__sessions_by_id) do
-		if not active_tmux_session_list[id] then
-			__sessions_by_id[id] = nil
-		end
-	end
-
-	for id, session_name in pairs(active_tmux_session_list) do
-		__add_session_to_session_cache(id, session_name)
-	end
-end
-
-local __merge_state_with_persisted_state = function(pstate)
-	local saved_state = pstate:get()
-
-	-- merge the in_memory data with the stored one
-	for id, saved_session_prop in pairs(saved_state) do
-		local in_mem_session_prop = __sessions_by_id[id]
-		if in_mem_session_prop then
-			if in_mem_session_prop.last_used < saved_session_prop.last_used then
-				in_mem_session_prop.last_used = saved_session_prop.last_used
-			end
-			in_mem_session_prop.name = saved_session_prop.name
-		else
-			__sessions_by_id[id] = saved_session_prop
-		end
-	end
-end
-
-local __reverse_sort_table = function(tbl)
-	local keys = {}
-	for k in pairs(tbl) do
-		table.insert(keys, k)
-	end
-	table.sort(keys, function(a, b)
-		return a > b
-	end)
-end
-
----@param order_property string
----@param second_order_property string?
-local __get_ordered_session_list = function(order_property, second_order_property)
-	-- no need to prepare for multiple sessions under the same name, since tmux does not let it to happen,
-	-- in any other cases the primary and secondary ordering properties will be different
-	second_order_property = second_order_property and second_order_property or "name"
-	local ordered_session_list = helper.shallow_copy_table(__session_list)
-	-- local sessions_by_order_property = {}
-
-	table.sort(ordered_session_list, function(a, b)
-		if a[order_property] == b[order_property] then
-			return a[second_order_property] < b[second_order_property]
-		else
-			-- the last used should be the first in the list
-			if order_property == "last_used" then
-				return a[order_property] > b[order_property]
-			elseif order_property == "name" then
-				return a[order_property]:lower() < b[order_property]:lower()
-			else
-				return a[order_property] < b[order_property]
-			end
-		end
-	end)
-
-	return ordered_session_list
-end
-
 ---@class TmuxSessions
----@field pstate PersistentState
----@field sort_by string
----@field __notifier function
 local TmuxSessions = {}
 TmuxSessions.__index = TmuxSessions
 
 ---@return TmuxSessions
 function TmuxSessions:new(opts)
-	local conf = config.reinit_config(opts)
+  local conf = config.reinit_config(opts)
 
-	local obj = {}
-	self.pstate = PersistentState:new(conf, "sessions.cache")
-	self.sort_by = conf.opts.sort_sessions
-	self.__notifier = utils.get_notifier(opts)
+  local obj = {}
+  self.tstate = require("telescope-tmux.core.tmux-state"):new(conf)
+  self.sort_sessions_by = conf.opts.sort_sessions
+  self.sort_windows_by = conf.opts.sort_windows
+  self.windows = require("telescope-tmux.core.windows"):new(opts)
+  self.__notifier = utils.get_notifier(opts)
 
-	setmetatable(obj, self)
-	self:__syncronize_all_states()
-	return obj
-end
-
-function TmuxSessions:__syncronize_all_states()
-	__merge_state_with_persisted_state(self.pstate)
-	__merge_live_state_with_in_memory_state()
-	self.pstate:write(__sessions_by_id)
+  setmetatable(obj, self)
+  return obj
 end
 
 ---@return TmuxSessionTable[]
-function TmuxSessions:list_sessions()
-	self:__syncronize_all_states()
+function TmuxSessions:list_sessions(opts)
+  local conf = config.reinit_config(opts).opts
+  if conf.list_sessions == enums.session.listing.type.simple then
+    return self:list_sessions_simple()
+  elseif conf.list_sessions == enums.session.listing.type.full then
+    return self:list_sessions_with_windows()
+  else
+    return {}
+  end
+end
 
-	return __get_ordered_session_list(self.sort_by)
+---@return TmuxSessionTable[]
+function TmuxSessions:list_sessions_simple()
+  local mapped_list = vim.tbl_map(function(tbl)
+    tbl.display = tbl.session_name
+    tbl.kind = "root"
+    return tbl
+  end, utils.order_list_by_property(self.tstate:get_session_list(), self.sort_sessions_by, enums.session.sorting.name))
+  return mapped_list
+end
+
+-- function TmuxSessions:list_sessions_with_windows()
+--   local session_list = __get_ordered_list(self.tstate:get_session_list(), self.sort_by)
+--   local final_list = {}
+--   for _, session_details in pairs(session_list) do
+--     local window_list = {}
+--     for win_id, details in pairs(session_details.windows) do
+--       table.insert(window_list, details)
+--     end
+--     local ordered_windows = __get_ordered_list(window_list, self.sort_by)
+--
+--     for _, window in pairs(ordered_windows) do
+--       table.insert(final_list, {
+--         id = session_details.id,
+--         name = name,
+--         window_id = window.id,
+--         last_used = window.last_used
+--       })
+--     end
+--   end
+--
+--   return final_list
+-- end
+
+function TmuxSessions:list_sessions_with_windows()
+  local session_list =
+    utils.order_list_by_property(self.tstate:get_session_list(), self.sort_sessions_by, enums.session.sorting.name)
+  local final_list = {}
+  for _, session_details in pairs(session_list) do
+    local window_list = {}
+    for _, details in pairs(session_details.windows) do
+      table.insert(window_list, details)
+    end
+
+    local active_window_details = self.tstate:get_active_window_of_a_session(session_details.session_id)
+    local active_window_name = active_window_details and active_window_details.window_name or ""
+    local active_window_id = active_window_details and active_window_details.window_id or ""
+    local inactive_windows = {}
+
+    for _, window in pairs(window_list) do
+      if window.window_id ~= active_window_id then
+        table.insert(inactive_windows, window)
+      end
+    end
+    local ordered_windows =
+      utils.order_list_by_property(inactive_windows, self.sort_windows_by, enums.window.sorting.name)
+
+    -- first add the session itself
+    local connector = #ordered_windows == 0 and " ━ " or " ┏ "
+    table.insert(final_list, {
+      display = session_details.session_name .. connector .. active_window_name,
+      session_name = session_details.session_name,
+      window_name = active_window_name,
+      window_id = active_window_id,
+      kind = enums.session.entity.kind.main,
+      ordinal = session_details.session_name,
+      session_id = session_details.session_id,
+      last_used = session_details.last_used,
+    })
+
+    for index, window in pairs(ordered_windows) do
+      -- onpy add window if it is not the active one, since it is being showed by the main session
+      local separator = string.rep(" ", string.len(session_details.session_name))
+      connector = index < #ordered_windows and " ┣ " or " ┗ "
+      local name = separator .. connector .. window.window_name
+      table.insert(final_list, {
+        session_id = session_details.session_id,
+        session_name = session_details.session_name,
+        window_name = window.window_name,
+        display = name,
+        kind = enums.session.entity.kind.sub,
+        ordinal = session_details.session_name .. " " .. name,
+        window_id = window.window_id,
+        last_used = window.last_used,
+      })
+    end
+  end
+
+  return final_list
 end
 
 ---@return TmuxSessionTable[]
 function TmuxSessions:list_sessions_unordered()
-	self:__syncronize_all_states()
-
-	return __session_list
+  return self.tstate:get_session_list()
 end
 
 ---@param session_name string
 ---@param cwd? string
----@return string | nil, string:? Error
+---@return string | nil, string | nil
 function TmuxSessions:create_session(session_name, cwd)
-	local new_session_id_and_name, err = {}, {}
-	local tmux_create_session_command = {
-		"tmux",
-		"new-session",
-		"-dP",
-		"-s",
-		session_name,
-		"-F",
-		"#{session_id}:#{session_name}",
-	}
+  local tmux_create_session_command = {
+    "tmux",
+    "new-session",
+    "-dP",
+    "-s",
+    session_name,
+    "-F",
+    "#{session_id}:#{session_name}:#{window_id}:#{window_name}:#{window_active}",
+  }
 
-	if cwd then
-		tmux_create_session_command = helper.concat_simple_lists(tmux_create_session_command, { "-c", cwd })
-	end
+  if cwd then
+    tmux_create_session_command = helper.concat_simple_lists(tmux_create_session_command, { "-c", cwd })
+  end
 
-	new_session_id_and_name, _, err = tutils.get_os_command_output(tmux_create_session_command)
+  local new_session_details, _, err = tutils.get_os_command_output(tmux_create_session_command)
 
-	err = err[1]
-	if err then
-		return nil, err
-	end
+  err = err and err[1]
+  if err then
+    return nil, err
+  end
 
-	local new_session_id, new_session_name = __get_session_id_name_pairs(new_session_id_and_name[1])
+  local new_session_id, new_session_name, new_window_id, new_window_name =
+    utils.get_tmux_session_data_parts(new_session_details[1])
 
-	if new_session_id then
-		__add_session_to_session_cache_and_pstate(new_session_id, new_session_name, self.pstate)
-		self:__syncronize_all_states()
-	end
+  if new_session_id then
+    self.tstate:add_session_to_cache(new_session_id, {
+      session_name = new_session_name,
+      windows = {
+        [new_window_id] = new_window_name,
+      },
+    })
+    -- self.tstate:update_states()
+  end
 
-	return new_session_id, err
+  return new_session_id, err
 end
 
 ---@param session_id string
 ---@param new_name string
 ---@return string | nil
 function TmuxSessions:rename_session(session_id, new_name)
-	local _, _, err = tutils.get_os_command_output({
-		"tmux",
-		"rename-session",
-		"-t",
-		session_id,
-		new_name,
-	})
+  local _, _, err = tutils.get_os_command_output({
+    "tmux",
+    "rename-session",
+    "-t",
+    session_id,
+    new_name,
+  })
 
-	err = err[1]
-	if not err then
-		self:__syncronize_all_states()
-	end
-	return err
+  err = err and err[1]
+  return err
 end
 
 ---@param session_id string
 ---@return string | nil
 function TmuxSessions:kill_session(session_id)
-	local _, _, err = tutils.get_os_command_output({
-		"tmux",
-		"kill-session",
-		"-t",
-		session_id,
-	})
+  local _, _, err = tutils.get_os_command_output({
+    "tmux",
+    "kill-session",
+    "-t",
+    session_id,
+  })
 
-	err = err[1]
+  err = err and err[1]
 
-	if not err then
-		self:__syncronize_all_states()
-	end
-	return err
+  return err
 end
 
----@param session_id_to_kill string
 ---@param session_id_to_switch string
 ---@return string | nil
 function TmuxSessions:switch_to_session_and_kill_current(session_id_to_switch)
-	local current_session_id = TmuxState:get_session_id()
-	local command = string.format(
-		"silent !tmux switch-client -t '%s' -c '%s' \\; kill-session -t '%s'",
-		session_id_to_switch,
-		TmuxState:get_client_tty(),
-		current_session_id
-	)
-	vim.cmd(command)
+  local current_session_id = self.tstate:get_session_id()
+  local command = string.format(
+    "silent !tmux switch-client -t '%s' -c '%s' \\; kill-session -t '%s'",
+    session_id_to_switch,
+    self.tstate:get_client_tty(),
+    current_session_id
+  )
+  vim.cmd(command)
 end
 
 ---@param session_id string
+---@param window_id? string
 ---@return nil | string
-function TmuxSessions:switch_session(session_id)
-	local current_time = os.time()
+function TmuxSessions:switch_session(session_id, window_id)
+  local session_to_switch_to = self.tstate:get_session_details_by_session_id(session_id)
+  if session_to_switch_to == nil then
+    return "Cannot switch session, no session found with id: " .. session_id
+  end
 
-	if __sessions_by_id[session_id] == nil then
-		return "Cannot switch session, no session found with id: " .. session_id
-	end
-
-	local current_session_id = TmuxState:get_session_id()
-	__sessions_by_id[current_session_id].last_used = current_time - 1
-	__sessions_by_id[session_id].last_used = current_time
-	self:__syncronize_all_states()
-	local command = string.format("silent !tmux switch-client -t '%s' -c '%s'", session_id, TmuxState:get_client_tty())
-	vim.cmd(command)
+  local current_time = os.time()
+  local current_session_id = self.tstate:get_session_id()
+  local update_last_used_list = {}
+  if current_session_id then
+    table.insert(update_last_used_list, { session_id = current_session_id, last_used = current_time - 1 })
+  end
+  table.insert(update_last_used_list, { session_id = session_id, last_used = current_time })
+  self.tstate:set_last_used_time_for_sessions(update_last_used_list)
+  if window_id then
+    self.windows:switch_window(session_id, window_id, current_time)
+  end
+  local id = window_id and session_id .. ":" .. window_id or session_id
+  local command = string.format("silent !tmux switch-client -t '%s' -c '%s'", id, self.tstate:get_client_tty())
+  vim.cmd(command)
 end
 
 function TmuxSessions:get_previous_session()
-	local current_session_id = TmuxState:get_session_id()
-	local previous_session = nil
-	self:__syncronize_all_states()
+  local current_session_id = self.tstate:get_session_id()
+  local previous_session = nil
+  local ordered_list = utils.order_list_by_property(
+    self.tstate:get_session_list(),
+    enums.session.sorting.usage,
+    enums.session.sorting.name
+  )
 
-	for _, v in pairs(__get_ordered_session_list("last_used")) do
-		if v.id ~= current_session_id then
-			previous_session = v
-			break
-		end
-	end
+  for _, v in pairs(ordered_list) do
+    if v.session_id ~= current_session_id then
+      previous_session = v
+      break
+    end
+  end
 
-	return previous_session
+  return previous_session
 end
 
 function TmuxSessions:switch_to_previous_session()
-	local previous_session = self:get_previous_session()
+  local previous_session = self:get_previous_session()
 
-	if previous_session ~= nil then
-		self:switch_session(previous_session.id)
-	else
-		self.__notifier("No previous session to switch to", vim.log.levels.INFO)
-	end
+  if previous_session ~= nil then
+    self:switch_session(previous_session.session_id)
+  else
+    self.__notifier("No previous session to switch to", vim.log.levels.INFO)
+  end
 end
 
 ---@param session_id string
 ---@return {} | TmuxSessionTable
 function TmuxSessions:get_session_data_by_id(session_id)
-	self:__syncronize_all_states()
-	return __sessions_by_id[session_id] or {}
+  return self.tstate:get_session_details_by_session_id(session_id) or {}
 end
 
 ---@param session_name string
+---@return string | nil
 function TmuxSessions:get_session_id_by_name(session_name)
-	for _, session_data in pairs(__session_list) do
-		if session_name == session_data.name then
-			return session_data.id
-		end
-	end
-	return nil
+  for _, session_data in pairs(self.tstate:get_session_list()) do
+    if session_name == session_data.session_name then
+      return session_data.session_id
+    end
+  end
+  return nil
 end
 
 return TmuxSessions

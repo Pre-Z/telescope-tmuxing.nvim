@@ -4,14 +4,14 @@ local telescope_utils = require("telescope-tmux.core.telescope_utils")
 local pickers = require("telescope.pickers")
 
 ---@class TmuxPickerOptions
----@field title string
+---@field title string | function
 ---@field finder function
 ---@field sorter function
 ---@field previewer function | table
 ---@field mappings table
 
 ---@class TmuxPicker
----@field title string
+---@field title string | function
 ---@field finder function
 ---@field sorter function
 ---@field previewer table
@@ -34,15 +34,15 @@ end
 function TmuxPicker:get_picker_for_telescope(opts)
   opts = opts or {}
   local picker_options = {
-    prompt_title = self.title,
+    prompt_title = type(self.title) == "string" and self.title or self.title(opts),
     finder = self.finder(opts),
     sorter = self.sorter,
-    previewer = type(self.previewer) == 'table' and self.previewer or self.previewer(opts),
+    previewer = type(self.previewer) == "table" and self.previewer or self.previewer(opts),
     attach_mappings = telescope_utils.get_attach_mappings_fn(self.mappings, opts),
   }
 
   picker_options = vim.tbl_deep_extend("keep", picker_options, opts)
-  local picker = pickers.new(picker_options)
+  local picker = pickers:new(picker_options)
   picker:find()
 end
 

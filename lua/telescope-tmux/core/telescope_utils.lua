@@ -1,7 +1,7 @@
-local action_state = require "telescope.actions.state"
-local telescope_actions = require "telescope.actions"
-local util = require "telescope-tmux.lib.utils"
-local previewers = require "telescope.previewers"
+local action_state = require("telescope.actions.state")
+local previewers = require("telescope.previewers")
+local telescope_actions = require("telescope.actions")
+local util = require("telescope-tmux.lib.utils")
 
 local telescope_utils = {}
 
