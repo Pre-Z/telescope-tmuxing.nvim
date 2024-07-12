@@ -26,15 +26,19 @@ local __add_window_data_to_session_id = function(session_id, windows)
 
   for window_id, window_details in pairs(windows) do
     if not __sessions_by_id[session_id].windows[window_id] then
-      __sessions_by_id[session_id].windows[window_id] =
-        { window_id = window_id, window_name = window_details.name, last_used = 0, active_window = window_details.active }
+      __sessions_by_id[session_id].windows[window_id] = {
+        window_id = window_id,
+        window_name = window_details.window_name,
+        last_used = 0,
+        active_window = window_details.active_window,
+        session_id = session_id,
+      }
       table.insert(__sessions_by_id[session_id].window_list, __sessions_by_id[session_id].windows[window_id])
     else
-      __sessions_by_id[session_id].windows[window_id].window_name = window_details.name -- force update the window name
-      __sessions_by_id[session_id].windows[window_id].active_window = window_details.active -- force update the active window state
+      __sessions_by_id[session_id].windows[window_id].window_name = window_details.window_name -- force update the window name
+      __sessions_by_id[session_id].windows[window_id].active_window = window_details.active_window -- force update the active window state
     end
   end
-
 end
 
 ---@param session_id string
@@ -75,11 +79,11 @@ local __merge_live_state_with_in_memory_state = function()
       if not active_tmux_session_list[session_id] then
         active_tmux_session_list[session_id] = {
           session_name = session_name,
-          windows = window_id ~= nil and { [window_id] = { name = window_name, active = active_window } } or {},
+          windows = window_id ~= nil and { [window_id] = { session_id = session_id,  window_name = window_name, active_window = active_window } } or {},
         }
       else
         if window_id then
-          active_tmux_session_list[session_id].windows[window_id] = { name = window_name, active = active_window }
+          active_tmux_session_list[session_id].windows[window_id] = { session_name, window_name = window_name, active_window = active_window }
         end
       end
     end
@@ -204,7 +208,6 @@ function TmuxState:get_session_details_by_session_id(session_id)
   return __sessions_by_id[session_id]
 end
 
-
 ---@param session_id string
 ---@param window_id string
 ---@return TmuxWindowTable | nil
@@ -228,7 +231,6 @@ function TmuxState:get_window_id()
   return __tmux_window_id
 end
 
-
 ---@return boolean
 function TmuxState:in_tmux_session()
   return __in_tmux_session
@@ -251,6 +253,15 @@ function TmuxState:get_active_window_details_of_a_session(session_id)
   end
 
   return {}
+end
+
+function TmuxState:get_current_session_id_and_window_data()
+  self:update_states()
+
+  local active_session_id = self:get_session_id()
+  local active_window = self:get_active_window_details_of_a_session(active_session_id)
+
+  return active_session_id, active_window
 end
 
 return TmuxState

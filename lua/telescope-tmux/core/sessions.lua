@@ -14,7 +14,8 @@ function TmuxSessions:new(opts)
 
 	local obj = {}
 	self.tstate = require("telescope-tmux.core.tmux-state"):new(conf)
-	self.sort_by = conf.opts.sort_sessions
+	self.sort_sessions_by = conf.opts.sort_sessions
+  self.sort_windows_by = conf.opts.sort_windows
   self.windows = require("telescope-tmux.core.windows"):new(opts)
 	self.__notifier = utils.get_notifier(opts)
 
@@ -40,7 +41,7 @@ function TmuxSessions:list_sessions_simple()
 		tbl.display = tbl.session_name
     tbl.kind = 'root'
 		return tbl
-	end, utils.order_list_by_property(self.tstate:get_session_list(), self.sort_by, enum.session.sorting.session_name))
+	end, utils.order_list_by_property(self.tstate:get_session_list(), self.sort_sessions_by, enum.session.sorting.name))
   return mapped_list
 end
 
@@ -68,7 +69,7 @@ end
 -- end
 
 function TmuxSessions:list_sessions_with_windows()
-	local session_list = utils.order_list_by_property(self.tstate:get_session_list(), self.sort_by, enum.session.sorting.session_name)
+	local session_list = utils.order_list_by_property(self.tstate:get_session_list(), self.sort_sessions_by, enum.session.sorting.name)
 	local final_list = {}
 	for _, session_details in pairs(session_list) do
 		local window_list = {}
@@ -79,14 +80,14 @@ function TmuxSessions:list_sessions_with_windows()
 		local active_window_details = self.tstate:get_active_window_details_of_a_session(session_details.session_id)
     local active_window_name = active_window_details.window_name
     local active_window_id = active_window_details.window_id
-		local windows_to_process = {}
+		local inactive_windows = {}
 
 		for _, window in pairs(window_list) do
 			if window.window_id ~= active_window_id then
-				table.insert(windows_to_process, window)
+				table.insert(inactive_windows, window)
 			end
 		end
-		local ordered_windows = utils.order_list_by_property(windows_to_process, self.sort_by, enum.session.sorting.window_name)
+		local ordered_windows = utils.order_list_by_property(inactive_windows, self.sort_windows_by, enum.window.sorting.name)
 
 		-- first add the session itself
 		local connector = #ordered_windows == 0 and " ━ " or " ┏ "

@@ -26,7 +26,8 @@
 ---@field pstate PersistentState
 
 ---@class TmuxSessions
----@field sort_by string
+---@field sort_sessions_by string
+---@field sort_windows_by string
 ---@field tstate TmuxState
 ---@field windows TmuxWindow
 ---@field __notifier function
@@ -54,6 +55,7 @@
 ---@field cache_folder string
 ---@field nvim_notify NvimNotifyOptions
 ---@field layout_strategy string
+---@field keep_telescope_open boolean
 ---@field list_sessions SessionsListingOptions
 ---@field sort_sessions SessionsSortBy
 ---@field sort_windows WindowsSortBy

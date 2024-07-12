@@ -1,7 +1,7 @@
 local action_state = require("telescope.actions.state")
 local actions = require("telescope.actions")
-local enum = require("telescope-tmux.core.enums")
-local finder = require("telescope-tmux.pickers.sessions.switch_session.finder")
+-- local enum = require("telescope-tmux.core.enums")
+local finder = require("telescope-tmux.pickers.windows.switch_window.finder")
 local popup = require("telescope-tmux.lib.popup")
 local utils = require("telescope-tmux.lib.utils")
 
@@ -29,28 +29,71 @@ SwitchActions.on_select = function(prompt_bufnr, opts)
   actions.close(prompt_bufnr)
 end
 
--- SwitchActions.rename_session = function(prompt_bufnr, opts)
---   local selection = action_state.get_selected_entry()
---   local rename_callback = function(new_name)
---     if not new_name then
---       return
---     end
---     local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
---     local err = TmuxSessions:rename_session(selection.value.session_id, new_name)
---     if err then
---       local notifier = utils.get_notifier(opts)
---       notifier("Failed to rename session: " .. err, vim.log.levels.ERROR)
---     end
---
---     utils.close_telescope_or_refresh(opts, prompt_bufnr, finder)
---   end
---
---   popup.show_input({
---     prompt = "New name:",
---     default = selection.value.session_name,
---   }, rename_callback)
--- end
---
+
+
+
+-- for debugging purpose
+function table_print(tt, indent, done)
+  done = done or {}
+  indent = indent or 0
+  if type(tt) == "table" then
+    local sb = {}
+    for key, value in pairs(tt) do
+      table.insert(sb, string.rep(" ", indent)) -- indent it
+      if type(value) == "table" and not done[value] then
+        done[value] = true
+        table.insert(sb, key .. " = {\n")
+        table.insert(sb, table_print(value, indent + 2, done))
+        table.insert(sb, string.rep(" ", indent)) -- indent it
+        table.insert(sb, "}\n")
+      elseif "number" == type(key) then
+        table.insert(sb, string.format('"%s"\n', tostring(value)))
+      else
+        table.insert(sb, string.format('%s = "%s"\n', tostring(key), tostring(value)))
+      end
+    end
+    return table.concat(sb)
+  else
+    return tt .. "\n"
+  end
+end
+
+table_to_string = function(tbl)
+  if "nil" == type(tbl) then
+    return tostring(nil)
+  elseif "table" == type(tbl) then
+    return table_print(tbl)
+  elseif "string" == type(tbl) then
+    return tbl
+  else
+    return tostring(tbl)
+  end
+end
+
+
+
+SwitchActions.rename_window = function(prompt_bufnr, opts)
+  local selection = action_state.get_selected_entry()
+  local rename_callback = function(new_name)
+    if not new_name then
+      return
+    end
+    local TmuxWindows = require("telescope-tmux.core.windows"):new(opts)
+    local err = TmuxWindows:rename_window(selection.value.session_id, selection.value.window_id, new_name)
+    if err then
+      local notifier = utils.get_notifier(opts)
+      notifier("Failed to rename window: " .. err, vim.log.levels.ERROR)
+    end
+
+    utils.close_telescope_or_refresh(opts, prompt_bufnr, finder)
+  end
+
+  popup.show_input({
+    prompt = "New name:",
+    default = selection.value.window_name,
+  }, rename_callback)
+end
+
 -- SwitchActions.kill_session = function(prompt_bufnr, opts)
 --   local selection = action_state.get_selected_entry().value
 --   local current_picker = action_state.get_current_picker(prompt_bufnr)
