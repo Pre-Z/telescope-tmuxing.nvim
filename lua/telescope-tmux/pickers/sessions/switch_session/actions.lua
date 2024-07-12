@@ -18,8 +18,8 @@ SwitchActions.on_select = function(prompt_bufnr, opts)
     )
   then
     local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
-    local selection = action_state.get_selected_entry()
-    local err = TmuxSessions:switch_session(selection.value.session_id, selection.value.window_id)
+    local selection = action_state.get_selected_entry().value
+    local err = TmuxSessions:switch_session(selection.session_id, selection.window_id)
     if err ~= nil then
       local notifier = utils.get_notifier(opts)
       notifier(err, vim.log.levels.ERROR)
@@ -30,13 +30,13 @@ SwitchActions.on_select = function(prompt_bufnr, opts)
 end
 
 SwitchActions.rename_session = function(prompt_bufnr, opts)
-  local selection = action_state.get_selected_entry()
+  local selection = action_state.get_selected_entry().value
   local rename_callback = function(new_name)
     if not new_name then
       return
     end
     local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
-    local err = TmuxSessions:rename_session(selection.value.session_id, new_name)
+    local err = TmuxSessions:rename_session(selection.session_id, new_name)
     if err then
       local notifier = utils.get_notifier(opts)
       notifier("Failed to rename session: " .. err, vim.log.levels.ERROR)
@@ -47,7 +47,7 @@ SwitchActions.rename_session = function(prompt_bufnr, opts)
 
   popup.show_input({
     prompt = "New name:",
-    default = selection.value.session_name,
+    default = selection.session_name,
   }, rename_callback)
 end
 
