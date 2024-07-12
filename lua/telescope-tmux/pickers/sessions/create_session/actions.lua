@@ -8,9 +8,8 @@ local CreateSessionActions = {}
 ---@param prompt_bufnr number
 ---@param opts table
 CreateSessionActions.on_select = function(prompt_bufnr, opts)
-	local selection = action_state.get_selected_entry().value
+	local selected_full_path = action_state.get_selected_entry().value
 	local selected_folder = nil
-	local selected_full_path = selection
 	for parent_folder in string.gmatch(selected_full_path, "([^/]+)$") do -- get the last folder
 		selected_folder = parent_folder
 	end
@@ -80,6 +79,11 @@ CreateSessionActions.on_select = function(prompt_bufnr, opts)
 		end
 		return
 	end
+
+  if not new_session_id then
+    notifier("Failed to create new session", vim.log.levels.ERROR)
+    return
+  end
 
 	local error = TmuxSessions:switch_session(new_session_id)
 	if error ~= nil then

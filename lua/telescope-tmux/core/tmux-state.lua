@@ -260,7 +260,7 @@ end
 
 ---@param session_id string
 ---@return TmuxWindowTable | nil
-function TmuxState:get_active_window_details_of_a_session(session_id)
+function TmuxState:get_active_window_of_a_session(session_id)
   self:update_states()
 
   for window_id, window_details in pairs(__sessions_by_id[session_id].windows) do
@@ -268,6 +268,13 @@ function TmuxState:get_active_window_details_of_a_session(session_id)
       return window_details
     end
   end
+end
+
+---@param session_id string
+---@return TmuxWindowTable[] | nil
+function TmuxState:get_window_list_of_a_session(session_id)
+  self:update_states()
+  return __sessions_by_id[session_id].window_list
 end
 
 ---@return TmuxSessionTable | nil
@@ -281,7 +288,7 @@ end
 function TmuxState:get_current_window_data()
   self:update_states()
 
-  return self:get_active_window_details_of_a_session(__tmux_session_id)
+  return self:get_active_window_of_a_session(__tmux_session_id)
 end
 
 return TmuxState

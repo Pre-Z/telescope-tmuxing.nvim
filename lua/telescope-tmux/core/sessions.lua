@@ -77,7 +77,7 @@ function TmuxSessions:list_sessions_with_windows()
 			table.insert(window_list, details)
 		end
 
-		local active_window_details = self.tstate:get_active_window_details_of_a_session(session_details.session_id)
+		local active_window_details = self.tstate:get_active_window_of_a_session(session_details.session_id)
     local active_window_name = active_window_details and active_window_details.window_name or ""
     local active_window_id = active_window_details and active_window_details.window_id or ""
 		local inactive_windows = {}
@@ -163,7 +163,7 @@ function TmuxSessions:create_session(session_name, cwd)
 				[new_window_id] = new_window_name,
 			},
 		})
-		self.tstate:update_states()
+		-- self.tstate:update_states()
 	end
 
 	return new_session_id, err
@@ -270,6 +270,7 @@ function TmuxSessions:get_session_data_by_id(session_id)
 end
 
 ---@param session_name string
+---@return string | nil
 function TmuxSessions:get_session_id_by_name(session_name)
 	for _, session_data in pairs(self.tstate:get_session_list()) do
 		if session_name == session_data.session_name then

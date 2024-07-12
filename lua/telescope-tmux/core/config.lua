@@ -29,6 +29,15 @@ local __TmuxDefaultConfig = {
 		only_dirs = true,
 		previewer_command = { "ls", "-la" },
 	},
+	create_window = { -- plenary configuration options
+		scan_paths = { vim.fn.getcwd() },
+		scan_pattern = nil,
+		scan_depth = nil,
+		respect_gitignore = true,
+		include_hidden_dirs = false,
+		only_dirs = true,
+		previewer_command = { "ls", "-la" },
+	},
 	nvim_notify = {
 		icon = "﬿",
 		title = "Telescope Tmux",

@@ -1,6 +1,7 @@
 local TmuxState = require("telescope-tmux.core.tmux-state")
 local config = require("telescope-tmux.core.config")
 local tutils = require("telescope.utils")
+local helper = require("telescope-tmux.lib.helper")
 local enums = require("telescope-tmux.core.enums")
 local utils = require("telescope-tmux.lib.utils")
 
@@ -137,6 +138,63 @@ function TmuxWindows:switch_to_previous_window(session_data)
 	else
 		self.__notifier("No previous window to switch to", vim.log.levels.INFO)
 	end
+end
+
+---@param session_id string
+---@param window_name? string
+---@param cwd? string
+---@return string | nil, string | nil
+function TmuxWindows:create_window(session_id, window_name, cwd)
+	local tmux_create_session_command = {
+		"tmux",
+		"new-window",
+		"-dP",
+		"-t",
+		session_id,
+		"-F",
+		"#{session_id}:#{session_name}:#{window_id}:#{window_name}:#{window_active}",
+	}
+  if window_name then
+		tmux_create_session_command = helper.concat_simple_lists(tmux_create_session_command, { "-n", window_name })
+  end
+
+	if cwd then
+		tmux_create_session_command = helper.concat_simple_lists(tmux_create_session_command, { "-c", cwd })
+	end
+
+	local new_session_details, _, err = tutils.get_os_command_output(tmux_create_session_command)
+
+	err = err and err[1]
+	if err then
+		return nil, err
+	end
+
+	local new_session_id, new_session_name, new_window_id, new_window_name =
+		utils.get_tmux_session_data_parts(new_session_details[1])
+
+	if new_session_id then
+		self.tstate:add_session_to_cache(new_session_id, {
+			session_name = new_session_name, -- this is not changed, but the adder expects this
+			windows = {
+				[new_window_id] = new_window_name,
+			},
+		})
+	end
+
+	return new_window_id, err
+end
+
+---@param session_id string
+---@param window_name string
+---@return string | nil
+function TmuxWindows:get_window_id_by_window_name_for_a_session(session_id, window_name)
+  local window_list = self.tstate:get_window_list_of_a_session(session_id) or {}
+	for _, window_data in pairs(window_list) do
+		if window_name == window_data.window_name then
+			return window_data.window_id
+		end
+	end
+	return nil
 end
 
 return TmuxWindows
