@@ -14,11 +14,16 @@ return function (opts)
     local config = require("telescope-tmux.core.config")
     local conf = config.reinit_config(opts).opts.create_window
     local scanner_config = {}
+    local scan_paths = conf.scan_paths
     scanner_config.hidden = conf.include_hidden_dirs
     scanner_config.search = conf.scan_pattern
     scanner_config.depth = conf.scan_depth
     scanner_config.respect_gitignore = conf.respect_gitignore
     scanner_config.only_dirs = conf.only_dirs
+
+    if conf.include_cwd then
+      table.insert(scan_paths, vim.fn.getcwd())
+    end
 
     local dirs = {}
     for _, dir in pairs(conf.scan_paths) do

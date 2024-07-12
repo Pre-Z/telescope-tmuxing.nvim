@@ -52,6 +52,17 @@
 ---@field include_hidden_dirs boolean
 ---@field previewer_command string[]
 
+---@class CreateWindowOptions
+---@field scan_paths string[]
+---@field scan_pattern? string | string[] | function
+---@field include_cwd boolean
+---@field scan_depth? number
+---@field respect_gitignore boolean
+---@field only_dirs boolean
+---@field include_hidden_dirs boolean
+---@field previewer_command string[]
+
+
 ---@class TmuxConfig
 ---@field cache_folder string
 ---@field nvim_notify NvimNotifyOptions
@@ -61,6 +72,7 @@
 ---@field sort_sessions SessionsSortBy
 ---@field sort_windows WindowsSortBy
 ---@field create_session CreateSessionOptions
+---@field create_window CreateWindowOptions
 
 ---@class SessionLastUsedUpdateTable
 ---@field session_id string
