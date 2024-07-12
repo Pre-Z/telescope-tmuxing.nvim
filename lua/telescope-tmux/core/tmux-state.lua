@@ -79,11 +79,16 @@ local __merge_live_state_with_in_memory_state = function()
       if not active_tmux_session_list[session_id] then
         active_tmux_session_list[session_id] = {
           session_name = session_name,
-          windows = window_id ~= nil and { [window_id] = { session_id = session_id,  window_name = window_name, active_window = active_window } } or {},
+          windows = window_id ~= nil
+              and {
+                [window_id] = { session_id = session_id, window_name = window_name, active_window = active_window },
+              }
+            or {},
         }
       else
         if window_id then
-          active_tmux_session_list[session_id].windows[window_id] = { session_name, window_name = window_name, active_window = active_window }
+          active_tmux_session_list[session_id].windows[window_id] =
+            { session_name, window_name = window_name, active_window = active_window }
         end
       end
     end

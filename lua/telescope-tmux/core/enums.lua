@@ -14,13 +14,13 @@ M.common.sorting = {
   number = {
     property_match_pattern = ".+id",
     cut_pattern_for_value = "^[@$]",
-  }
+  },
 }
 
 setmetatable(M.common.sorting, {
   __index = function(_, key)
     error("Invalid sorting key: " .. tostring(key))
-  end
+  end,
 })
 
 M.session = {}

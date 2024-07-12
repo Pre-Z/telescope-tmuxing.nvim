@@ -1,8 +1,8 @@
 local finders = require("telescope.finders")
 local helper = require("telescope-tmux.lib.helper")
 
-return function (opts)
-  local plenary_available, scanner = pcall(require, 'plenary.scandir')
+return function(opts)
+  local plenary_available, scanner = pcall(require, "plenary.scandir")
   local results = {}
   if not plenary_available then
     local utils = require("telescope-tmux.lib.utils")
@@ -34,14 +34,14 @@ return function (opts)
   end
 
   return finders.new_table({
-		results = results,
-		entry_maker = function(item)
-			return {
-				value = item,
+    results = results,
+    entry_maker = function(item)
+      return {
+        value = item,
         display = item,
         ordinal = item,
         valid = true,
-			}
-		end,
+      }
+    end,
   })
 end

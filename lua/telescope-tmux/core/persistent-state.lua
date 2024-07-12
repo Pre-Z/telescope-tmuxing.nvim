@@ -1,12 +1,12 @@
+local config = require("telescope-tmux.core.config")
 local persist = require("telescope-tmux.lib.persist")
 local utils = require("telescope-tmux.lib.utils")
-local config = require("telescope-tmux.core.config")
 
-local prepare_cache_folder = function (conf)
+local prepare_cache_folder = function(conf)
   -- prepare the cache folder
   if vim.fn.isdirectory(conf.cache_folder) == 0 then
-		vim.fn.mkdir(conf.cache_folder, "p")
-	end
+    vim.fn.mkdir(conf.cache_folder, "p")
+  end
 end
 
 ---@class PersistentState
@@ -44,7 +44,7 @@ end
 
 ---@param content any
 function PersistentState:write(content)
- local _, err = persist.save_table(content, self.cache_file)
+  local _, err = persist.save_table(content, self.cache_file)
 
   if err then
     self.__notifier("Error writing to file: " .. err, vim.log.levels.error)

@@ -9,59 +9,59 @@ local dressing_available, dressing = pcall(require, "dressing")
 ---@param opts InputOptions
 ---@param callback function
 M.show_input = function(opts, callback)
-	vim.ui.input(opts, callback)
+  vim.ui.input(opts, callback)
 end
 
 M.show_input_center = function(...)
-	if dressing_available then
-		dressing.setup({
-			input = {
-				relative = "win",
-			},
-		})
-	end
+  if dressing_available then
+    dressing.setup({
+      input = {
+        relative = "win",
+      },
+    })
+  end
 
-	M.show_input(...)
+  M.show_input(...)
 
-	-- FIXME: need a proper solution for this
-	if dressing_available then
-		dressing.setup({
-			input = {
-				relative = "cursor",
-			},
-		})
-	end
+  -- FIXME: need a proper solution for this
+  if dressing_available then
+    dressing.setup({
+      input = {
+        relative = "cursor",
+      },
+    })
+  end
 end
 
 ---@param select_table table<number, table<string, function>>
 ---@param config InputOptions
 M.show_selector = function(select_table, config)
-	local options = {}
-	local option_cb_table = {}
+  local options = {}
+  local option_cb_table = {}
 
-	for _, option in helper.key_ordered_pairs(select_table) do
-		for title, cb in pairs(option) do
-			option_cb_table[title] = cb
-			table.insert(options, title)
-		end
-	end
+  for _, option in helper.key_ordered_pairs(select_table) do
+    for title, cb in pairs(option) do
+      option_cb_table[title] = cb
+      table.insert(options, title)
+    end
+  end
 
   -- FIXME: need better solution for this
-	if dressing_available then
-		dressing.setup({
-			select = {
-				backend = { "builtin" },
-			},
-		})
-	end
+  if dressing_available then
+    dressing.setup({
+      select = {
+        backend = { "builtin" },
+      },
+    })
+  end
 
-	vim.ui.select(options, config, function(selection)
-		if not selection then
-			return
-		end
+  vim.ui.select(options, config, function(selection)
+    if not selection then
+      return
+    end
 
-		return option_cb_table[selection]()
-	end)
+    return option_cb_table[selection]()
+  end)
 end
 
 return M

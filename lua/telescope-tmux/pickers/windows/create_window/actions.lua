@@ -33,7 +33,8 @@ CreateWindowActions.on_select = function(prompt_bufnr, opts)
     -- this seems to be more robust to let Tmux do its name normaliztaion and check if the normalized name already exists or not
     if duplicate_window_name then
       local window_switch_cb = function()
-        local window_id = TmuxWindows:get_window_id_by_window_name_for_a_session(current_session_id, duplicate_window_name)
+        local window_id =
+          TmuxWindows:get_window_id_by_window_name_for_a_session(current_session_id, duplicate_window_name)
 
         if window_id then
           TmuxWindows:switch_window(current_session_id, window_id)

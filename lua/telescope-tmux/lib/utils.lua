@@ -100,10 +100,14 @@ M.order_list_by_property = function(list, order_property, second_order_property)
       return a[second_order_property] < b[second_order_property]
     else
       if string.find(order_property, enums.common.sorting.reverse_ordering_property.property_match_pattern) then
-        local a_value =
-          helper.cut_off_pattern_from_string(a[order_property], enums.common.sorting.reverse_ordering_property.cut_pattern_for_value)
-        local b_value =
-          helper.cut_off_pattern_from_string(b[order_property], enums.common.sorting.reverse_ordering_property.cut_pattern_for_value)
+        local a_value = helper.cut_off_pattern_from_string(
+          a[order_property],
+          enums.common.sorting.reverse_ordering_property.cut_pattern_for_value
+        )
+        local b_value = helper.cut_off_pattern_from_string(
+          b[order_property],
+          enums.common.sorting.reverse_ordering_property.cut_pattern_for_value
+        )
         return a_value > b_value
       -- comparing as string
       elseif string.find(order_property, enums.common.sorting.string.property_match_pattern) then
@@ -112,7 +116,6 @@ M.order_list_by_property = function(list, order_property, second_order_property)
         local b_value =
           helper.cut_off_pattern_from_string(b[order_property], enums.common.sorting.string.cut_pattern_for_value)
         return a_value:lower() < b_value:lower()
-
       elseif string.find(order_property, enums.common.sorting.number.property_match_pattern) then
         local a_value =
           helper.cut_off_pattern_from_string(a[order_property], enums.common.sorting.number.cut_pattern_for_value)

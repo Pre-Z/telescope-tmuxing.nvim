@@ -1,8 +1,8 @@
-local previewers = require("telescope.previewers")
 local config = require("telescope-tmux.core.config")
 local helper = require("telescope-tmux.lib.helper")
+local previewers = require("telescope.previewers")
 
-return function (opts)
+return function(opts)
   local conf = config.reinit_config(opts).opts
 
   return previewers.new_termopen_previewer({
@@ -13,4 +13,3 @@ return function (opts)
     end,
   })
 end
-

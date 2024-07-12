@@ -62,7 +62,6 @@
 ---@field include_hidden_dirs boolean
 ---@field previewer_command string[]
 
-
 ---@class TmuxConfig
 ---@field cache_folder string
 ---@field nvim_notify NvimNotifyOptions
