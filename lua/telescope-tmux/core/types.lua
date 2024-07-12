@@ -5,8 +5,9 @@
 ---@field __notifier function
 
 ---@class TmuxWindowTable
----@field window_id string
+---@field session_id string
 ---@field window_name string
+---@field window_id string
 ---@field last_used number
 
 ---@class TmuxSessionTable

@@ -15,10 +15,11 @@ local __session_listing_possible_values = {
 ---@type TmuxConfig
 local __TmuxDefaultConfig = {
 	cache_folder = vim.api.nvim_call_function("stdpath", { "state" }) .. "/telescope-tmuxing",
-	sort_sessions = "session_id", -- possible options: "last_used", "session_name"
+	sort_sessions = "last_used", -- possible options: "last_used", "session_name"
 	list_sessions = "simple", -- options: "full", "simple"
-  sort_windows = "window_id", -- possible options: "last_used", "session_name"
+  sort_windows = "last_used", -- possible options: "last_used", "session_name"
   keep_telescope_open = true, -- after quick actions (e.g. deleting/renaming session) keep telescope window open
+  cross_session_window_switch = false, -- if true switch to previous session will consider all windows across all active sessions
 	create_session = { -- plenary configuration options
 		scan_paths = { "." },
 		scan_pattern = nil,

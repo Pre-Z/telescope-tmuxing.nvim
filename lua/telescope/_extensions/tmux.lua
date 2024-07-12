@@ -12,6 +12,8 @@ local pickers = {
   --- Windows
   switch_window = require("telescope-tmux.pickers.windows.switch_window.picker"),
   rename_current_window = require("telescope-tmux.pickers.windows.rename_current_window.command"),
+  kill_current_window = require("telescope-tmux.pickers.windows.kill_current_window.command"),
+  switch_prev_window = require("telescope-tmux.pickers.windows.switch_to_previous_window.command"),
 }
 
 return telescope.register_extension({

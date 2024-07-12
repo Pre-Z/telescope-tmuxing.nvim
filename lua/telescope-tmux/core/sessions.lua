@@ -2,7 +2,7 @@ local tutils = require("telescope.utils")
 local helper = require("telescope-tmux.lib.helper")
 local config = require("telescope-tmux.core.config")
 local utils = require("telescope-tmux.lib.utils")
-local enum = require("telescope-tmux.core.enums")
+local enums = require("telescope-tmux.core.enums")
 
 ---@class TmuxSessions
 local TmuxSessions = {}
@@ -26,9 +26,9 @@ end
 ---@return TmuxSessionTable[]
 function TmuxSessions:list_sessions(opts)
   local conf = config.reinit_config(opts).opts
-  if conf.list_sessions == enum.session.listing.type.simple then
+  if conf.list_sessions == enums.session.listing.type.simple then
     return self:list_sessions_simple()
-  elseif conf.list_sessions == enum.session.listing.type.full then
+  elseif conf.list_sessions == enums.session.listing.type.full then
     return self:list_sessions_with_windows()
   else
     return {}
@@ -41,7 +41,7 @@ function TmuxSessions:list_sessions_simple()
 		tbl.display = tbl.session_name
     tbl.kind = 'root'
 		return tbl
-	end, utils.order_list_by_property(self.tstate:get_session_list(), self.sort_sessions_by, enum.session.sorting.name))
+	end, utils.order_list_by_property(self.tstate:get_session_list(), self.sort_sessions_by, enums.session.sorting.name))
   return mapped_list
 end
 
@@ -69,7 +69,7 @@ end
 -- end
 
 function TmuxSessions:list_sessions_with_windows()
-	local session_list = utils.order_list_by_property(self.tstate:get_session_list(), self.sort_sessions_by, enum.session.sorting.name)
+	local session_list = utils.order_list_by_property(self.tstate:get_session_list(), self.sort_sessions_by, enums.session.sorting.name)
 	local final_list = {}
 	for _, session_details in pairs(session_list) do
 		local window_list = {}
@@ -78,8 +78,8 @@ function TmuxSessions:list_sessions_with_windows()
 		end
 
 		local active_window_details = self.tstate:get_active_window_details_of_a_session(session_details.session_id)
-    local active_window_name = active_window_details.window_name
-    local active_window_id = active_window_details.window_id
+    local active_window_name = active_window_details and active_window_details.window_name or ""
+    local active_window_id = active_window_details and active_window_details.window_id or ""
 		local inactive_windows = {}
 
 		for _, window in pairs(window_list) do
@@ -87,7 +87,7 @@ function TmuxSessions:list_sessions_with_windows()
 				table.insert(inactive_windows, window)
 			end
 		end
-		local ordered_windows = utils.order_list_by_property(inactive_windows, self.sort_windows_by, enum.window.sorting.name)
+		local ordered_windows = utils.order_list_by_property(inactive_windows, self.sort_windows_by, enums.window.sorting.name)
 
 		-- first add the session itself
 		local connector = #ordered_windows == 0 and " ━ " or " ┏ "
@@ -96,7 +96,7 @@ function TmuxSessions:list_sessions_with_windows()
 			session_name = session_details.session_name,
 			window_name = active_window_name,
       window_id = active_window_id,
-      kind = enum.session.entity.kind.main,
+      kind = enums.session.entity.kind.main,
 			ordinal = session_details.session_name,
 			session_id = session_details.session_id,
 			last_used = session_details.last_used,
@@ -112,7 +112,7 @@ function TmuxSessions:list_sessions_with_windows()
 				session_name = session_details.session_name,
 				window_name = window.window_name,
 				display = name,
-        kind = enum.session.entity.kind.sub,
+        kind = enums.session.entity.kind.sub,
 				ordinal = session_details.session_name .. " " .. name,
 				window_id = window.window_id,
 				last_used = window.last_used,
@@ -241,8 +241,9 @@ end
 function TmuxSessions:get_previous_session()
 	local current_session_id = self.tstate:get_session_id()
 	local previous_session = nil
+  local ordered_list = utils.order_list_by_property(self.tstate:get_session_list(), enums.session.sorting.usage, enums.session.sorting.name)
 
-	for _, v in pairs(utils.order_list_by_property(self.tstate:get_session_list(), "last_used", "session_name")) do
+	for _, v in pairs(ordered_list) do
 		if v.session_id ~= current_session_id then
 			previous_session = v
 			break

@@ -17,13 +17,13 @@ return RenameCurrentWindowCommand:new({
 			return
 		end
 
-    local current_session_id, current_window_detils = TmuxState:get_current_session_id_and_window_data()
+    local current_window_detils = TmuxState:get_current_window_data()
 		local rename_callback = function(new_name)
 			if not new_name then
 				return
 			end
 
-			local err = TmuxWindows:rename_window(current_session_id, current_window_detils.window_id, new_name)
+			local err = TmuxWindows:rename_window(current_window_detils.session_id, current_window_detils.window_id, new_name)
 			if err then
 				local notifier = utils.get_notifier(opts)
 				notifier("Failed to rename window: " .. err, vim.log.levels.ERROR)

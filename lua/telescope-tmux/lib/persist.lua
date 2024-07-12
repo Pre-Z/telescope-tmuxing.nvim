@@ -46,7 +46,7 @@ function M.save_table(tbl, filename)
 	end
 
   if file == nil then
-    return _, "Failed to open file " .. filename
+    return nil, "Failed to open file " .. filename
   end
 
 	-- initiate variables for save procedure
@@ -120,11 +120,11 @@ end
 function M.load_table(sfile)
 	local ftables, err = loadfile(sfile)
 	if err then
-		return _, err
+		return nil, err
 	end
 
   if ftables == nil then
-    return _, "Failed to acquire file content from " .. sfile
+    return nil, "Failed to acquire file content from " .. sfile
   end
 
 	local tables = ftables()

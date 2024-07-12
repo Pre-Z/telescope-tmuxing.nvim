@@ -1,7 +1,7 @@
 local TmuxState = require("telescope-tmux.core.tmux-state")
 local config = require("telescope-tmux.core.config")
 local tutils = require("telescope.utils")
-local enum = require("telescope-tmux.core.enums")
+local enums = require("telescope-tmux.core.enums")
 local utils = require("telescope-tmux.lib.utils")
 
 ---@class TmuxWindow
@@ -31,7 +31,7 @@ function TmuxWindows:list_windows_of_session_id(session_id)
   return vim.tbl_map(function(tbl)
     tbl.display = tbl.window_name
     return tbl
-  end, utils.order_list_by_property(window_list, self.sort_by, enum.window.sorting.name))
+  end, utils.order_list_by_property(window_list, self.sort_by, enums.window.sorting.name))
 end
 
 ---@param session_id string
@@ -70,7 +70,6 @@ function TmuxWindows:rename_window(session_id, window_id, new_name)
 		string.format("%s:%s", session_id, window_id),
 		new_name,
   }
-  print("the rename command:\n" .. table_to_string(command))
 	local _, _, err = tutils.get_os_command_output(command)
 
 	err = err and err[1]
@@ -96,5 +95,48 @@ function TmuxWindows:kill_window(session_id, window_id)
 	return err
 end
 
+---@param window_data_to_switch_to TmuxWindowTable
+---@param window_data_to_kill TmuxWindowTable
+---@return string | nil
+function TmuxWindows:switch_to_window_and_kill_current(window_data_to_switch_to, window_data_to_kill)
+	local command = string.format(
+		"silent !tmux switch-client -t '%s:%s' -c '%s' \\; kill-window -t '%s:%s'",
+		window_data_to_switch_to.session_id,
+    window_data_to_switch_to.window_id,
+		self.tstate:get_client_tty(),
+		window_data_to_kill.session_id,
+    window_data_to_kill.window_id
+	)
+	vim.cmd(command)
+end
+
+---@param session_data (TmuxWindowTable | TmuxSessionTable)?
+---@return TmuxWindowTable | nil
+function TmuxWindows:get_previous_window(session_data)
+	local current_window_id = self.tstate:get_window_id()
+	local previous_window = nil
+  local session_list = session_data and session_data.window_list or self.tstate:get_all_window_list()
+  local ordered_list = utils.order_list_by_property(session_list, enums.window.sorting.usage, enums.window.sorting.name)
+
+	for _, v in pairs(ordered_list) do
+		if v.window_id ~= current_window_id then
+			previous_window = v
+			break
+		end
+	end
+
+	return previous_window
+end
+
+---@param session_data (TmuxWindowTable | TmuxSessionTable)?
+function TmuxWindows:switch_to_previous_window(session_data)
+	local previous_window = self:get_previous_window(session_data)
+
+	if previous_window ~= nil then
+		self:switch_window(previous_window.session_id, previous_window.window_id)
+	else
+		self.__notifier("No previous window to switch to", vim.log.levels.INFO)
+	end
+end
 
 return TmuxWindows

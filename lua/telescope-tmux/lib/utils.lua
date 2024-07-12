@@ -94,12 +94,12 @@ M.order_list_by_property = function(list, order_property, second_order_property)
 
   table.sort(ordered_list, function(a, b)
     if a[order_property] == b[order_property] then
-      if string.find(second_order_property, "name") then
+      if string.find(second_order_property, enums.common.sorting.string.property_match_pattern) then
         return a[second_order_property]:lower() < b[second_order_property]:lower()
       end
       return a[second_order_property] < b[second_order_property]
     else
-      if order_property == enums.common.sorting.reverse_ordering_property then
+      if string.find(order_property, enums.common.sorting.reverse_ordering_property.property_match_pattern) then
         local a_value =
           helper.cut_off_pattern_from_string(a[order_property], enums.common.sorting.reverse_ordering_property.cut_pattern_for_value)
         local b_value =

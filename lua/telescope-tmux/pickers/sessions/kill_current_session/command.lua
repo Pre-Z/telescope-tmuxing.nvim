@@ -9,7 +9,6 @@ return KillCurrentSessionCommand:new({
 	command = function(opts)
 		opts = opts or {}
 		local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
-		local TmuxState = require("telescope-tmux.core.tmux-state"):new(opts)
 		local utils = require("telescope-tmux.lib.utils")
 
 		if utils.notified_user_about_not_in_tmux_session(opts, "Not in a Tmux session, nothing to kill", vim.log.levels.ERROR) then
@@ -17,7 +16,6 @@ return KillCurrentSessionCommand:new({
 		end
 
 		local notifier = utils.get_notifier(opts)
-		local current_session_id = TmuxState:get_session_id()
 		local switch_and_kill_cb = function()
 			local previous_session = TmuxSessions:get_previous_session()
 			if not previous_session then

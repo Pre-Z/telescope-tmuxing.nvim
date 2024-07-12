@@ -200,6 +200,18 @@ function TmuxState:get_session_list()
   return __session_list
 end
 
+---@return TmuxWindowTable[]
+function TmuxState:get_all_window_list()
+  self:update_states()
+  local window_list = {}
+  for _, session in pairs(__session_list) do
+    for _, window in pairs(session.window_list) do
+      table.insert(window_list, window)
+    end
+  end
+  return window_list
+end
+
 ---@return TmuxSessionById
 function TmuxState:get_sessions_by_id_table()
   self:update_states()
@@ -247,7 +259,7 @@ function TmuxState:get_base_index()
 end
 
 ---@param session_id string
----@return table --TODO: add proper type
+---@return TmuxWindowTable | nil
 function TmuxState:get_active_window_details_of_a_session(session_id)
   self:update_states()
 
@@ -256,17 +268,20 @@ function TmuxState:get_active_window_details_of_a_session(session_id)
       return window_details
     end
   end
-
-  return {}
 end
 
-function TmuxState:get_current_session_id_and_window_data()
+---@return TmuxSessionTable | nil
+function TmuxState:get_current_session_data()
   self:update_states()
 
-  local active_session_id = self:get_session_id()
-  local active_window = self:get_active_window_details_of_a_session(active_session_id)
+  return __sessions_by_id[__tmux_session_id]
+end
 
-  return active_session_id, active_window
+---@return TmuxWindowTable | nil
+function TmuxState:get_current_window_data()
+  self:update_states()
+
+  return self:get_active_window_details_of_a_session(__tmux_session_id)
 end
 
 return TmuxState

@@ -31,23 +31,32 @@ end
 
 SwitchActions.rename_session = function(prompt_bufnr, opts)
   local selection = action_state.get_selected_entry().value
+  local session_rename = selection.kind == "root"
+  local type = session_rename and "session" or "window"
   local rename_callback = function(new_name)
     if not new_name then
       return
     end
-    local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
-    local err = TmuxSessions:rename_session(selection.session_id, new_name)
+    local err = nil
+    if session_rename then
+      local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
+      err = TmuxSessions:rename_session(selection.session_id, new_name)
+    else
+      local TmuxWindows = require("telescope-tmux.core.windows"):new(opts)
+      err = TmuxWindows:rename_window(selection.session_id, selection.window_id, new_name)
+    end
+
     if err then
       local notifier = utils.get_notifier(opts)
-      notifier("Failed to rename session: " .. err, vim.log.levels.ERROR)
+      notifier(string.format("Failed to rename %s: ", type) .. err, vim.log.levels.ERROR)
     end
 
     utils.close_telescope_or_refresh(opts, prompt_bufnr, finder)
   end
 
   popup.show_input({
-    prompt = "New name:",
-    default = selection.session_name,
+    prompt = string.format("New %s name:", type),
+    default = session_rename and selection.session_name or selection.window_name,
   }, rename_callback)
 end
 
@@ -122,6 +131,16 @@ SwitchActions.kill_session = function(prompt_bufnr, opts)
     end
 
     -- do the window kill here
+    if #kill_cb_map.window > 0 then
+      local TmuxWindows = require("telescope-tmux.core.windows"):new(opts)
+
+      for _, session in pairs(kill_cb_map.window) do
+        local err = TmuxWindows:kill_window(session.session_id, session.window_id)
+        if err then
+          notifier("Failed to kill window: " .. err, vim.log.levels.ERROR)
+        end
+      end
+    end
 
     utils.close_telescope_or_refresh(opts, prompt_bufnr, finder)
   end
