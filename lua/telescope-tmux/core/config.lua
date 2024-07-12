@@ -2,7 +2,8 @@ local config = {}
 local enums = require("telescope-tmux.core.enums")
 
 local __session_sort_possible_values = {
-	enums.session.sorting.session_name,
+	enums.session.sorting.name,
+  enums.session.sorting.id,
 	enums.session.sorting.usage,
 }
 
@@ -14,9 +15,10 @@ local __session_listing_possible_values = {
 ---@type TmuxConfig
 local __TmuxDefaultConfig = {
 	cache_folder = vim.api.nvim_call_function("stdpath", { "state" }) .. "/telescope-tmuxing",
-	sort_sessions = "last_used", -- possible options: "last_used", "session_name"
+	sort_sessions = "session_id", -- possible options: "last_used", "session_name"
 	list_sessions = "simple", -- options: "full", "simple"
-  sort_windows = "last_used", -- possible options: "last_used", "session_name"
+  sort_windows = "window_id", -- possible options: "last_used", "session_name"
+  keep_telescope_open = true, -- after quick actions (e.g. deleting/renaming session) keep telescope window open
 	create_session = { -- plenary configuration options
 		scan_paths = { "." },
 		scan_pattern = nil,
