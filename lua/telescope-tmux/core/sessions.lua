@@ -182,9 +182,6 @@ function TmuxSessions:rename_session(session_id, new_name)
 	})
 
 	err = err and err[1]
-	if not err then
-		self.tstate:update_states()
-	end
 	return err
 end
 
@@ -200,9 +197,6 @@ function TmuxSessions:kill_session(session_id)
 
 	err = err and err[1]
 
-	if not err then
-		self.tstate:update_states()
-	end
 	return err
 end
 

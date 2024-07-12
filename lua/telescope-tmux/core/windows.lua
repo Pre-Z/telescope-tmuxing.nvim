@@ -93,9 +93,6 @@ function TmuxWindows:kill_window(session_id, window_id)
 
 	err = err and err[1]
 
-	-- if not err then
-	-- 	self.tstate:update_states()
-	-- end
 	return err
 end
 
