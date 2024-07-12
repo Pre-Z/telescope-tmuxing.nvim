@@ -139,7 +139,7 @@ function TmuxSessions:create_session(session_name, cwd)
 		"-s",
 		session_name,
 		"-F",
-		"#{session_id}:#{session_name}:#{window_id}:#{window_name}",
+		"#{session_id}:#{session_name}:#{window_id}:#{window_name}:#{window_active}",
 	}
 
 	if cwd then

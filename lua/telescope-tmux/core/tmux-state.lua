@@ -92,16 +92,21 @@ local __merge_live_state_with_in_memory_state = function()
   __session_list = {} -- empty current list
 
   -- removing no longer existing session data
-  for session_id in pairs(__sessions_by_id) do
+  for session_id, session_data in pairs(__sessions_by_id) do
     -- removing the nonexxistent session
     if not active_tmux_session_list[session_id] then
-      __sessions_by_id[session_id] = nil
+      session_data = nil
     else
-      for window_id in pairs(__sessions_by_id[session_id].windows) do
+      for window_id in pairs(session_data.windows) do
         -- removing the nonexistent window
         if not active_tmux_session_list[session_id].windows[window_id] then
-          __sessions_by_id[session_id].windows[window_id] = nil
+          session_data.windows[window_id] = nil
         end
+      end
+      -- also have to deal with the window_list to have only the real items in it
+      session_data.window_list = {}
+      for _, window_data in pairs(session_data.windows) do
+        table.insert(session_data.window_list, window_data)
       end
     end
   end

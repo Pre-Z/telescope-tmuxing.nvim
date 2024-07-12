@@ -58,48 +58,6 @@ function TmuxWindows:switch_window(session_id, window_id, current_time)
 	vim.cmd(command)
 end
 
-
-
-
--- for debugging purpose
-function table_print(tt, indent, done)
-  done = done or {}
-  indent = indent or 0
-  if type(tt) == "table" then
-    local sb = {}
-    for key, value in pairs(tt) do
-      table.insert(sb, string.rep(" ", indent)) -- indent it
-      if type(value) == "table" and not done[value] then
-        done[value] = true
-        table.insert(sb, key .. " = {\n")
-        table.insert(sb, table_print(value, indent + 2, done))
-        table.insert(sb, string.rep(" ", indent)) -- indent it
-        table.insert(sb, "}\n")
-      elseif "number" == type(key) then
-        table.insert(sb, string.format('"%s"\n', tostring(value)))
-      else
-        table.insert(sb, string.format('%s = "%s"\n', tostring(key), tostring(value)))
-      end
-    end
-    return table.concat(sb)
-  else
-    return tt .. "\n"
-  end
-end
-
-table_to_string = function(tbl)
-  if "nil" == type(tbl) then
-    return tostring(nil)
-  elseif "table" == type(tbl) then
-    return table_print(tbl)
-  elseif "string" == type(tbl) then
-    return tbl
-  else
-    return tostring(tbl)
-  end
-end
-
-
 ---@param session_id string
 ---@param window_id string
 ---@param new_name string
@@ -122,6 +80,24 @@ function TmuxWindows:rename_window(session_id, window_id, new_name)
 	return err
 end
 
+---@param session_id string
+---@param window_id string
+---@return string | nil
+function TmuxWindows:kill_window(session_id, window_id)
+	local _, _, err = tutils.get_os_command_output({
+		"tmux",
+		"kill-window",
+		"-t",
+		string.format("%s:%s", session_id, window_id),
+	})
+
+	err = err and err[1]
+
+	-- if not err then
+	-- 	self.tstate:update_states()
+	-- end
+	return err
+end
 
 
 return TmuxWindows

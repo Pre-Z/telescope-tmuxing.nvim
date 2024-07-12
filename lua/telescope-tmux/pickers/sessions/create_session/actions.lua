@@ -8,9 +8,9 @@ local CreateSessionActions = {}
 ---@param prompt_bufnr number
 ---@param opts table
 CreateSessionActions.on_select = function(prompt_bufnr, opts)
-	local selection = action_state.get_selected_entry()
+	local selection = action_state.get_selected_entry().value
 	local selected_folder = nil
-	local selected_full_path = selection.value
+	local selected_full_path = selection
 	for parent_folder in string.gmatch(selected_full_path, "([^/]+)$") do -- get the last folder
 		selected_folder = parent_folder
 	end
