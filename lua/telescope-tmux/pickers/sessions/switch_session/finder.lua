@@ -1,4 +1,5 @@
 local finders = require("telescope.finders")
+local enums = require("telescope-tmux.core.enums")
 local utils = require("telescope-tmux.lib.utils")
 
 return function(opts)
@@ -13,14 +14,14 @@ return function(opts)
 
   local results = TmuxSessions:list_sessions(opts)
 
-  local decide_if_valid = function(id)
+  local decide_if_valid = function(item)
     -- if not in tmux state do not exclude any session
     if not TmuxState:in_tmux_session() then
       return true
     end
 
     -- do not show the current session
-    return id ~= TmuxState:get_session_id()
+    return item.session_id ~= TmuxState:get_session_id() and item.session_name ~= enums.session.listing.previewer_name
   end
 
   return finders.new_table({
@@ -30,7 +31,7 @@ return function(opts)
         value = item,
         display = item.display,
         ordinal = item.ordinal and item.ordinal or item.session_name,
-        valid = decide_if_valid(item.session_id),
+        valid = decide_if_valid(item),
       }
     end,
   })
