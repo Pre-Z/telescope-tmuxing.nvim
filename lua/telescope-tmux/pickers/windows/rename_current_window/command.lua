@@ -21,13 +21,13 @@ return RenameCurrentWindowCommand:new({
       return
     end
 
-    local current_window_detils = TmuxState:get_current_window_data()
+    local current_window_detials = TmuxState:get_current_window_data()
     local rename_callback = function(new_name)
       if not new_name then
         return
       end
 
-      local err = TmuxWindows:rename_window(current_window_detils.session_id, current_window_detils.window_id, new_name)
+      local err = TmuxWindows:rename_window(current_window_detials.session_id, current_window_detials.window_id, new_name)
       if err then
         local notifier = utils.get_notifier(opts)
         notifier("Failed to rename window: " .. err, vim.log.levels.ERROR)
@@ -35,8 +35,8 @@ return RenameCurrentWindowCommand:new({
     end
 
     popup.show_input_center({
-      prompt = "Rename current session to:",
-      default = current_window_detils.window_name,
+      prompt = "Rename current window to:",
+      default = current_window_detials.window_name,
     }, rename_callback)
   end,
 })

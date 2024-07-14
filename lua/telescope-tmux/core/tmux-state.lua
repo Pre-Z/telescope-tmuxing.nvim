@@ -136,15 +136,15 @@ local __merge_state_with_persisted_state = function(pstate)
       in_mem_session_prop.session_name = saved_session_prop.session_name
 
       -- adjusting the session's window properties
-      for window_id, window_details in pairs(saved_session_prop.windows) do
+      for window_id, window_data in pairs(saved_session_prop.windows) do
         local in_mem_window_prop = __sessions_by_id[session_id].windows[window_id]
         if in_mem_window_prop then
-          if in_mem_window_prop.last_used < window_details.last_used then
-            in_mem_window_prop.last_used = window_details.last_used
+          if in_mem_window_prop.last_used < window_data.last_used then
+            in_mem_window_prop.last_used = window_data.last_used
           end
-          in_mem_window_prop.window_name = window_details.window_name
+          in_mem_window_prop.window_name = window_data.window_name
         else
-          __sessions_by_id[session_id].windows[window_id] = window_details
+          __sessions_by_id[session_id].windows[window_id] = window_data
         end
       end
     else
@@ -289,11 +289,11 @@ function TmuxState:get_current_session_data()
   return __sessions_by_id[__tmux_session_id]
 end
 
----@return TmuxWindowTable | nil
+---@return TmuxWindowTable
 function TmuxState:get_current_window_data()
   self:update_states()
 
-  return self:get_active_window_of_a_session(__tmux_session_id)
+  return self:get_active_window_of_a_session(__tmux_session_id) or {}
 end
 
 return TmuxState
