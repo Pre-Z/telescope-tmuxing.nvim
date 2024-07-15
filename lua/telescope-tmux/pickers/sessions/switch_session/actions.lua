@@ -18,10 +18,15 @@ SwitchActions.on_select = function(prompt_bufnr, opts)
     )
   then
     local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
-    local selection = action_state.get_selected_entry().value
-    local err = TmuxSessions:switch_session(selection.session_id, selection.window_id)
+    local selection = action_state.get_selected_entry()
+    local notifier = utils.get_notifier(opts)
+    if not selection then
+      notifier("No such session.", vim.log.levels.ERROR)
+      return
+    end
+    local value = selection.value
+    local err = TmuxSessions:switch_session(value.session_id, value.window_id)
     if err ~= nil then
-      local notifier = utils.get_notifier(opts)
       notifier(err, vim.log.levels.ERROR)
       return
     end

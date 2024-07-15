@@ -18,10 +18,16 @@ SwitchActions.on_select = function(prompt_bufnr, opts)
     )
   then
     local TmuxWindows = require("telescope-tmux.core.windows"):new(opts)
-    local selection = action_state.get_selected_entry().value
-    local err = TmuxWindows:switch_window(selection.session_id, selection.window_id)
+    local selection = action_state.get_selected_entry()
+    local notifier = utils.get_notifier(opts)
+    if not selection then
+      notifier("No such window.", vim.log.levels.ERROR)
+      return
+    end
+    local value = selection.value
+
+    local err = TmuxWindows:switch_window(value.session_id, value.window_id)
     if err ~= nil then
-      local notifier = utils.get_notifier(opts)
       notifier(err, vim.log.levels.ERROR)
       return
     end
