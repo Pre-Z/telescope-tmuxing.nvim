@@ -35,7 +35,16 @@ SwitchActions.on_select = function(prompt_bufnr, opts)
 end
 
 SwitchActions.rename_session = function(prompt_bufnr, opts)
-  local selection = action_state.get_selected_entry().value
+  local selected_entry = action_state.get_selected_entry()
+  local notifier = utils.get_notifier(opts)
+
+  if not selected_entry then
+    notifier("No session/window to rename", vim.log.levels.INFO)
+    return
+  end
+
+  local selection = selected_entry.value
+
   local session_rename = selection.kind == "root"
   local type = session_rename and "session" or "window"
   local rename_callback = function(new_name)
@@ -52,12 +61,12 @@ SwitchActions.rename_session = function(prompt_bufnr, opts)
     end
 
     if err then
-      local notifier = utils.get_notifier(opts)
       notifier(string.format("Failed to rename %s: ", type) .. err, vim.log.levels.ERROR)
     end
 
     utils.close_telescope_or_refresh(opts, prompt_bufnr, finder)
   end
+
 
   popup.show_input({
     prompt = string.format("New %s name:", type),

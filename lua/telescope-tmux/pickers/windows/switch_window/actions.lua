@@ -36,7 +36,14 @@ SwitchActions.on_select = function(prompt_bufnr, opts)
 end
 
 SwitchActions.rename_window = function(prompt_bufnr, opts)
-  local selection = action_state.get_selected_entry().value
+  local selected_entry = action_state.get_selected_entry()
+  local notifier = utils.get_notifier(opts)
+  if not selected_entry then
+    notifier("No window to rename", vim.log.levels.INFO)
+    return
+  end
+
+  local selection = selected_entry.value
   local rename_callback = function(new_name)
     if not new_name then
       return
@@ -44,7 +51,6 @@ SwitchActions.rename_window = function(prompt_bufnr, opts)
     local TmuxWindows = require("telescope-tmux.core.windows"):new(opts)
     local err = TmuxWindows:rename_window(selection.session_id, selection.window_id, new_name)
     if err then
-      local notifier = utils.get_notifier(opts)
       notifier("Failed to rename window: " .. err, vim.log.levels.ERROR)
     end
 
