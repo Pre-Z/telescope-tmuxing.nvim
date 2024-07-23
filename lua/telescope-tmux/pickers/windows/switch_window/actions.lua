@@ -21,7 +21,7 @@ SwitchActions.on_select = function(prompt_bufnr, opts)
     local selection = action_state.get_selected_entry()
     local notifier = utils.get_notifier(opts)
     if not selection then
-      notifier("No such window.", vim.log.levels.ERROR)
+      notifier("No window to switch to", vim.log.levels.INFO)
       return
     end
     local value = selection.value
@@ -64,7 +64,14 @@ SwitchActions.rename_window = function(prompt_bufnr, opts)
 end
 
 SwitchActions.kill_window = function(prompt_bufnr, opts)
-  local selection = action_state.get_selected_entry()
+  local selected_entry = action_state.get_selected_entry()
+  local notifier = utils.get_notifier(opts)
+  if not selected_entry then
+    notifier("No window to kill", vim.log.levels.INFO)
+    return
+  end
+
+  local selection = selected_entry.value
   local current_picker = action_state.get_current_picker(prompt_bufnr)
   local multi_selection = current_picker:get_multi_selection()
   local current_session_id = require("telescope-tmux.core.tmux-state"):new(opts):get_session_id()
