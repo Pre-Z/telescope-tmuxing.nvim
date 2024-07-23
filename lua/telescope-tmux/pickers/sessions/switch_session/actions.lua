@@ -21,7 +21,7 @@ SwitchActions.on_select = function(prompt_bufnr, opts)
     local selection = action_state.get_selected_entry()
     local notifier = utils.get_notifier(opts)
     if not selection then
-      notifier("No such session.", vim.log.levels.ERROR)
+      notifier("No session to switch to", vim.log.levels.INFO)
       return
     end
     local value = selection.value
@@ -67,7 +67,6 @@ SwitchActions.rename_session = function(prompt_bufnr, opts)
     utils.close_telescope_or_refresh(opts, prompt_bufnr, finder)
   end
 
-
   popup.show_input({
     prompt = string.format("New %s name:", type),
     default = session_rename and selection.session_name or selection.window_name,
@@ -75,7 +74,15 @@ SwitchActions.rename_session = function(prompt_bufnr, opts)
 end
 
 SwitchActions.kill_session = function(prompt_bufnr, opts)
-  local selection = action_state.get_selected_entry().value
+  local selected_entry = action_state.get_selected_entry()
+  local notifier = utils.get_notifier(opts)
+
+  if not selected_entry then
+    notifier("No session/window to kill", vim.log.levels.INFO)
+    return
+  end
+
+  local selection = selected_entry.value
   local current_picker = action_state.get_current_picker(prompt_bufnr)
   local multi_selection = current_picker:get_multi_selection()
   local kill_cb_map = {
