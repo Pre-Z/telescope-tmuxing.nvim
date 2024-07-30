@@ -2,6 +2,8 @@
 
 !.gitignore
 !README.md
+!readme_assets/
+!readme_assets/**
 !.stylua.toml
 
 !lua/
