@@ -1,4 +1,4 @@
-# ﬿ Telescope Tmuxing
+# Telescope Tmuxing
 
 ## ? What is Telescope-Tmuxing ?
 This is a Telescope plugin for easily handling and navigating Tmux sessions and windows inside Neovim. It was inspired by [telescope-tmux.nvim](https://github.com/camgraff/telescope-tmux.nvim) and started as a set of additional feature changes. However, it grew too large to be a simple enhancement, so it became a separate project.
