@@ -21,7 +21,7 @@ local __TmuxDefaultConfig = {
   keep_telescope_open = true, -- after quick actions (e.g. deleting/renaming session) keep telescope window open
   cross_session_window_switch = false, -- if true switch to previous session will consider all windows across all active sessions
   create_session = { -- this section configures Plenary directory scanner
-    scan_paths = { "." }, -- string list of path, you can use ~/ for home directory
+    scan_paths = { "~/" }, -- string list of paths, ~/ means the user's home directory
     scan_pattern = nil, -- regex to filter out scan results
     scan_depth = 1,
     respect_gitignore = true,
@@ -30,7 +30,7 @@ local __TmuxDefaultConfig = {
     previewer_command = { "ls", "-la" },
   },
   create_window = { -- plenary configuration options
-    scan_paths = {}, -- this can be empty if include_cwd is turned on
+    scan_paths = {}, -- this can be empty if include_cwd is turned on; note if you have include_cwd on and you include "." or "./" in the scan_paths you will get the current directory and its subdirs twice
     include_cwd = true, -- will run vim.fn.getcwd() and will include it in scan_paths, this gives a good compatibility with neo-tree if you change the root path during your session
     scan_pattern = nil,
     scan_depth = nil,
