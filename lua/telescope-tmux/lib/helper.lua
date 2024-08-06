@@ -89,4 +89,13 @@ M.cut_off_pattern_from_string = function(s, pattern)
   return string.gsub(s, pattern, "")
 end
 
+M.get_last_folder_name_on_path = function(path)
+  local folder_name = nil
+  for last_folder_name in string.gmatch(path, "([^/]+)$") do -- get the last folder
+    folder_name = last_folder_name
+  end
+
+  return folder_name
+end
+
 return M
