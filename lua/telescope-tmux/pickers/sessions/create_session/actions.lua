@@ -2,6 +2,7 @@ local action_state = require("telescope.actions.state")
 local actions = require("telescope.actions")
 local popup = require("telescope-tmux.lib.popup")
 local utils = require("telescope-tmux.lib.utils")
+local helper = require("telescope-tmux.lib.helper")
 
 local CreateSessionActions = {}
 
@@ -9,10 +10,10 @@ local CreateSessionActions = {}
 ---@param opts table
 CreateSessionActions.on_select = function(prompt_bufnr, opts)
   local selected_full_path = action_state.get_selected_entry().value
-  local selected_folder = nil
-  for parent_folder in string.gmatch(selected_full_path, "([^/]+)$") do -- get the last folder
-    selected_folder = parent_folder
+  if selected_full_path == "." or selected_full_path == "./" then
+    selected_full_path = vim.fn.getcwd()
   end
+  local selected_folder = helper.get_last_folder_name_on_path(selected_full_path)
 
   local TmuxSessions = require("telescope-tmux.core.sessions"):new(opts)
   local notifier = utils.get_notifier(opts)
