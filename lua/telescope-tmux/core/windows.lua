@@ -24,15 +24,16 @@ end
 
 ---Gets the ordered window list of a session
 ---@param session_id string
+---@param reverse_order boolean
 ---@return TmuxSessionTable[]
 -- TODO: normalize the return type
-function TmuxWindows:list_windows_of_session_id(session_id)
+function TmuxWindows:list_windows_of_session_id(session_id, reverse_order)
   local window_list = self.tstate:get_session_details_by_session_id(session_id).window_list
 
   return vim.tbl_map(function(tbl)
     tbl.display = tbl.window_name
     return tbl
-  end, utils.order_list_by_property(window_list, self.sort_by, enums.window.sorting.name))
+  end, utils.order_list_by_property(window_list, self.sort_by, enums.window.sorting.name, reverse_order))
 end
 
 ---@param session_id string
