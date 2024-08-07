@@ -25,11 +25,13 @@ end
 
 ---@return TmuxSessionTable[]
 function TmuxSessions:list_sessions(opts)
-  local conf = config.reinit_config(opts).opts
+  local all_conf = config.reinit_config(opts)
+  local conf = all_conf.opts
+  local reverse_order = all_conf.sorting_strategy == enums.common.sorting.reversed_strategy and true or false
   if conf.list_sessions == enums.session.listing.type.simple then
     return self:list_sessions_simple()
   elseif conf.list_sessions == enums.session.listing.type.full then
-    return self:list_sessions_with_windows()
+    return self:list_sessions_with_windows(reverse_order)
   else
     return {}
   end
@@ -45,30 +47,8 @@ function TmuxSessions:list_sessions_simple()
   return mapped_list
 end
 
--- function TmuxSessions:list_sessions_with_windows()
---   local session_list = __get_ordered_list(self.tstate:get_session_list(), self.sort_by)
---   local final_list = {}
---   for _, session_details in pairs(session_list) do
---     local window_list = {}
---     for win_id, details in pairs(session_details.windows) do
---       table.insert(window_list, details)
---     end
---     local ordered_windows = __get_ordered_list(window_list, self.sort_by)
---
---     for _, window in pairs(ordered_windows) do
---       table.insert(final_list, {
---         id = session_details.id,
---         name = name,
---         window_id = window.id,
---         last_used = window.last_used
---       })
---     end
---   end
---
---   return final_list
--- end
-
-function TmuxSessions:list_sessions_with_windows()
+---@param reverse_order boolean
+function TmuxSessions:list_sessions_with_windows(reverse_order)
   local session_list =
     utils.order_list_by_property(self.tstate:get_session_list(), self.sort_sessions_by, enums.session.sorting.name)
   local final_list = {}
@@ -92,7 +72,7 @@ function TmuxSessions:list_sessions_with_windows()
       utils.order_list_by_property(inactive_windows, self.sort_windows_by, enums.window.sorting.name)
 
     -- first add the session itself
-    local connector = #ordered_windows == 0 and " ━ " or " ┏ "
+    local connector = #ordered_windows == 0 and " ━ " or (reverse_order) and " ┗ " or " ┏ "
     table.insert(final_list, {
       display = session_details.session_name .. connector .. active_window_name,
       session_name = session_details.session_name,
@@ -107,7 +87,7 @@ function TmuxSessions:list_sessions_with_windows()
     for index, window in pairs(ordered_windows) do
       -- onpy add window if it is not the active one, since it is being showed by the main session
       local separator = string.rep(" ", string.len(session_details.session_name))
-      connector = index < #ordered_windows and " ┣ " or " ┗ "
+      connector = index < #ordered_windows and " ┣ " or (reverse_order) and " ┏ " or " ┗ "
       local name = separator .. connector .. window.window_name
       table.insert(final_list, {
         session_id = session_details.session_id,
