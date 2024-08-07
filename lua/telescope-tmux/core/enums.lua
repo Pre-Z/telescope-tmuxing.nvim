@@ -15,6 +15,7 @@ M.common.sorting = {
     property_match_pattern = ".+id",
     cut_pattern_for_value = "^[@$]",
   },
+  reversed_strategy = "descending",
 }
 
 setmetatable(M.common.sorting, {
