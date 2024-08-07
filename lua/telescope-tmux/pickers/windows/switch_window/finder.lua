@@ -1,5 +1,6 @@
 local finders = require("telescope.finders")
 local utils = require("telescope-tmux.lib.utils")
+local enums = require("telescope-tmux.core.enums")
 
 return function(opts)
   local TmuxWindows = require("telescope-tmux.core.windows"):new(opts)
@@ -12,7 +13,8 @@ return function(opts)
   )
 
   local current_session_id = TmuxState:get_session_id()
-  local results = TmuxWindows:list_windows_of_session_id(current_session_id)
+  local reverse_order = opts.sorting_strategy == enums.common.sorting.reversed_strategy and true or false
+  local results = TmuxWindows:list_windows_of_session_id(current_session_id, reverse_order)
 
   local decide_if_valid = function(item)
     -- if not in tmux state do not exclude any session
