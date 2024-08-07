@@ -79,14 +79,14 @@ config.setup = function(extension_config, telescope_config)
   extension_config = extension_config or {}
   telescope_config = telescope_config or {}
   config.opts = __TmuxDefaultConfig
-  config = vim.tbl_deep_extend("force", config, telescope_config)
-  config.opts = vim.tbl_deep_extend("force", config.opts, extension_config)
+  if telescope_config ~= nil then
+    config = vim.tbl_deep_extend("force", config, telescope_config)
+  end
+  if extension_config ~= nil then
+    config.opts = vim.tbl_deep_extend("force", config.opts, extension_config)
+  end
 
   config.validate_config()
-end
-
-config.get_config = function()
-  return config.opts
 end
 
 config.reinit_config = function(opts)
@@ -95,7 +95,11 @@ config.reinit_config = function(opts)
   end
 
   if opts ~= nil then
-    config.opts = vim.tbl_deep_extend("keep", opts, config.opts)
+    if opts.opts ~= nil then
+      config = vim.tbl_deep_extend("force", config, opts)
+    else
+      config.opts = vim.tbl_deep_extend("force", config.opts, opts)
+    end
   end
 
   config.validate_config()
