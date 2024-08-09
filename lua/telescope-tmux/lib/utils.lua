@@ -145,4 +145,10 @@ M.get_active_window_id_name_of_a_session = function(session_id)
   end
 end
 
+M.get_current_folder_name = function ()
+  local current_path = vim.fn.getcwd()
+
+  return helper.get_last_folder_name_on_path(current_path)
+end
+
 return M
