@@ -27,16 +27,19 @@ return RenameCurrentWindowCommand:new({
         return
       end
 
-      local err = TmuxWindows:rename_window(current_window_detials.session_id, current_window_detials.window_id, new_name)
+      local err =
+        TmuxWindows:rename_window(current_window_detials.session_id, current_window_detials.window_id, new_name)
       if err then
         local notifier = utils.get_notifier(opts)
         notifier("Failed to rename window: " .. err, vim.log.levels.ERROR)
       end
     end
 
+    local suggested_name = utils.get_current_folder_name() -- suggest the current folder name which is the same as the window title if we did not change root
+
     popup.show_input_center({
       prompt = "Rename current window to:",
-      default = current_window_detials.window_name,
+      default = suggested_name,
     }, rename_callback)
   end,
 })

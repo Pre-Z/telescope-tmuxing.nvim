@@ -35,12 +35,11 @@ return RenameCurrentSessionCommand:new({
       end
     end
 
-    local data = TmuxSessions:get_session_data_by_id(current_session_id)
-    local current_name = data.session_name
+    local suggested_name = utils.get_current_folder_name() -- suggest the current folder name which is the same as the window title if we did not change root
 
     popup.show_input_center({
       prompt = "Rename current session to:",
-      default = current_name,
+      default = suggested_name,
     }, rename_callback)
   end,
 })
