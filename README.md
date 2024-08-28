@@ -1,5 +1,7 @@
 # Telescope Tmuxing
 
+![](./readme_assets/demo.gif)
+
 ## ? What is Telescope-Tmuxing ?
 This is a Telescope plugin for easily handling and navigating Tmux sessions and windows inside Neovim. It was inspired by [telescope-tmux.nvim](https://github.com/camgraff/telescope-tmux.nvim) and started as a set of additional feature changes. However, it grew too large to be a simple enhancement, so it became a separate project.
 
@@ -252,23 +254,9 @@ local __TmuxDefaultConfig = {
 Gives a list of sub-directories found on the paths defined in the `scan_paths` configuration part of create_session. The `scan_paths` list (the root of the results) is also included in the result set.
 
 ##### Handled scenarios:
-<details>
-    <summary>Create a new session on selected path (if no session exists with the parsed name)</summary>
-
-![](./readme_assets/create_session.gif)
-</details>
-
-<details>
-    <summary>Create new session on the selected path, but with different name if session already exists with the parsed name</summary>
-
-![](./readme_assets/create_session_as_copy.gif)
-</details>
-
-<details>
-    <summary>Create new session on the selected path, but switch to the session if it exists with the same name</summary>
-
-![](./readme_assets/create_session_switch_existing.gif)
-</details>
+- Create a new session on selected path (if no session exists with the parsed name)
+- Create new session on the selected path, but with different name if session already exists with the parsed name
+- Create new session on the selected path, but switch to the session if it exists with the same name
 
 #### List other sessions
 
@@ -283,32 +271,13 @@ Lists other active sessions.
 |`<cr>`|Switch to the selected session|n,i|
 
 ##### Handled scenarios
-<details>
-    <summary>List other active sessions</summary>
-
-![](./readme_assets/list_sessions_simple.gif)
-</details>
-
-<details>
-    <summary>Kill a selected session</summary>
-
-![](./readme_assets/kill_session_simple.gif)
-</details>
-
-<details>
-    <summary>Kill multiple sessions</summary>
-
-![](./readme_assets/kill_multiple_sessions_simple.gif)
-</details>
+- List other active sessions
+- Kill a selected session
+- Kill multiple sessions
 
 #### List other sessions with windows
 
-<details>
-    <summary>Lists the other active Tmux sessions and their windows. All of the functionalities described for the simple session listing are also available here namely session switch, session rename and session kill. In addition to this, it can differentiate if you would like to delete a window inside a session or a session itself.</summary>
-
-![](./readme_assets/kill_window_or_session.gif)
-</details>
-
+Lists the other active Tmux sessions and their windows. All of the functionalities described for the simple session listing are also available here namely session switch, session rename and session kill. In addition to this, it can differentiate if you would like to delete a window inside a session or a session itself
 
 To get this kind of session listing, call `switch_session` with `{ list_sessions = 'full'}` option. See the [example Lazy config](#LazyConfig) for details.
 The same keyboard mapping is available here as for the simple session listing.
@@ -327,42 +296,23 @@ It is possible to kill the active session with a single command. If the active s
 - simply kill the session without saving any modified buffer (this is the default); this can be useful for ephemeral sessions
 - save all changed buffers before killing the session
 
-<details>
-    <summary>Unfold for demo</summary>
-
-![](./readme_assets/kill_current_session.gif)
-</details>
-
-
 #### Rename session
 
 ##### Rename session in list view
 
-<details>
-    <summary>In list view, only one session rename is allowed at a time.</summary>
-
-![](./readme_assets/rename_session.gif)
-</details>
+In list view, only one session rename is allowed at a time
 
 > [!NOTE]
 > Because Telescope seems to have a weird reservation for `<c-r>` keybinding, the rename keybinding is set to be `<c-e>`.
 
 ##### Rename current session
 
-<details>
-    <summary>It is also possible to rename the current session.</summary>
-
-![](./readme_assets/rename_current_session.gif)
-</details>
+It is also possible to rename the current session
 
 
 #### Jump to previous session
 
-<details>
-    <summary>For convenience and effective navigation, it is possible to jump back to the last used session.</summary>
-
-![](./readme_assets/switch_to_previous_session.gif)
-</details>
+For convenience and effective navigation, it is possible to jump back to the last used session
 
 ### <a name="windows"></a>🪟 Windows
 
@@ -373,11 +323,6 @@ The content to show for the path list where to create the new window can be set 
  - The second one is the `create_window.include_cwd`, which is a boolean property. If it is true, Tmuxing will run `vim.fn.getcwd()` to get the actual project root. This can be useful if you use the `set_root` feature of Neo-tree, so you will see folders from the actual project root.
 
 Window creation also handles the same [scenarios](#handled-scenarios) as session creation does.
-<details>
-    <summary>Unfold for demo</summary>
-
-![](./readme_assets/create_new_window.gif)
-</details>
 
 #### List windows of current session
 
