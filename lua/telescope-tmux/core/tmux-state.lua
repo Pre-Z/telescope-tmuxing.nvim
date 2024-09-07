@@ -162,6 +162,8 @@ function TmuxState:new(opts)
   local obj = {}
 
   self.pstate = PersistentState:new(opts, "sessions.cache")
+  -- update state to have the in memory state know the saved session.cache (by other Nvim sessions under Tmux)
+  self:update_states()
   setmetatable(obj, self)
   return obj
 end
