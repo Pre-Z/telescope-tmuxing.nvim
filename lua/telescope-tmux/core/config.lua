@@ -24,6 +24,7 @@ local __TmuxDefaultConfig = {
     scan_paths = { "~/" }, -- string list of paths, ~/ means the user's home directory
     scan_pattern = nil, -- regex to filter out scan results
     scan_depth = 1,
+    run_command = nil,
     respect_gitignore = true,
     include_hidden_dirs = false,
     only_dirs = true, -- not recommended to change to false, but if you have symlinks of directories it may be useful, but make sure you select only directories or their symlinks
