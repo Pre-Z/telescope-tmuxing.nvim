@@ -35,6 +35,7 @@ local __TmuxDefaultConfig = {
     include_cwd = true, -- will run vim.fn.getcwd() and will include it in scan_paths, this gives a good compatibility with neo-tree if you change the root path during your session
     scan_pattern = nil,
     scan_depth = nil,
+    run_command=nil,
     respect_gitignore = true,
     include_hidden_dirs = false,
     only_dirs = true,

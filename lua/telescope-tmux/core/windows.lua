@@ -33,7 +33,7 @@ function TmuxWindows:list_windows_of_session_id(session_id, reverse_order)
   return vim.tbl_map(function(tbl)
     tbl.display = tbl.window_name
     return tbl
-  end, utils.order_list_by_property(window_list, self.sort_by, enums.window.sorting.name, reverse_order))
+  end, utils.order_list_by_property(window_list, self.sort_by, enums.window.sorting.name))
 end
 
 ---@param session_id string
@@ -147,8 +147,9 @@ end
 ---@param session_id string
 ---@param window_name? string
 ---@param cwd? string
+---@param run_command? string
 ---@return string | nil, string | nil
-function TmuxWindows:create_window(session_id, window_name, cwd)
+function TmuxWindows:create_window(session_id, window_name, cwd, run_command)
   local tmux_create_session_command = {
     "tmux",
     "new-window",
@@ -183,6 +184,25 @@ function TmuxWindows:create_window(session_id, window_name, cwd)
         [new_window_id] = new_window_name,
       },
     })
+  end
+
+  if run_command then
+    print("running command nvim...")
+    local run_cmd = {
+      "tmux",
+      "send-keys",
+      "-t",
+      new_session_id .. ":" .. new_window_id,
+      run_command,
+      "Enter",
+    }
+    -- string.format('tmux send-keys -t %s:%s "%s" Enter', new_session_id, new_window_id, run_command_on_new_session)
+    local _, _, run_cmd_err = tutils.get_os_command_output(run_cmd)
+
+    run_cmd_err = run_cmd_err and run_cmd_err[1]
+    if run_cmd_err then
+      return nil, run_cmd_err
+    end
   end
 
   return new_window_id, err
