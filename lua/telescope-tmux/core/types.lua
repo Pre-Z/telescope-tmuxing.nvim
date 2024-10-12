@@ -47,6 +47,7 @@
 ---@field scan_paths string[]
 ---@field scan_pattern? string | string[] | function
 ---@field scan_depth number
+---@field run_command? string
 ---@field respect_gitignore boolean
 ---@field only_dirs boolean
 ---@field include_hidden_dirs boolean
@@ -57,6 +58,7 @@
 ---@field scan_pattern? string | string[] | function
 ---@field include_cwd boolean
 ---@field scan_depth? number
+---@field run_command? string
 ---@field respect_gitignore boolean
 ---@field only_dirs boolean
 ---@field include_hidden_dirs boolean

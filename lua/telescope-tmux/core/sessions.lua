@@ -72,7 +72,7 @@ function TmuxSessions:list_sessions_with_windows(reverse_order)
       utils.order_list_by_property(inactive_windows, self.sort_windows_by, enums.window.sorting.name)
 
     -- first add the session itself
-    local connector = #ordered_windows == 0 and " ━ " or (reverse_order) and " ┗ " or " ┏ "
+    local connector = #ordered_windows == 0 and " ━ " or reverse_order and " ┗ " or " ┏ "
     table.insert(final_list, {
       display = session_details.session_name .. connector .. active_window_name,
       session_name = session_details.session_name,
@@ -85,9 +85,9 @@ function TmuxSessions:list_sessions_with_windows(reverse_order)
     })
 
     for index, window in pairs(ordered_windows) do
-      -- onpy add window if it is not the active one, since it is being showed by the main session
+      -- add window if it is not the active one, since it is being showed by the main session
       local separator = string.rep(" ", string.len(session_details.session_name))
-      connector = index < #ordered_windows and " ┣ " or (reverse_order) and " ┏ " or " ┗ "
+      connector = index < #ordered_windows and " ┣ " or reverse_order and " ┏ " or " ┗ "
       local name = separator .. connector .. window.window_name
       table.insert(final_list, {
         session_id = session_details.session_id,
@@ -112,8 +112,9 @@ end
 
 ---@param session_name string
 ---@param cwd? string
+---@param run_command? string
 ---@return string | nil, string | nil
-function TmuxSessions:create_session(session_name, cwd)
+function TmuxSessions:create_session(session_name, cwd, run_command)
   local tmux_create_session_command = {
     "tmux",
     "new-session",
@@ -146,6 +147,25 @@ function TmuxSessions:create_session(session_name, cwd)
       },
     })
     -- self.tstate:update_states()
+  end
+
+  if run_command then
+    print("running command nvim...")
+    local run_cmd = {
+      "tmux",
+      "send-keys",
+      "-t",
+      new_session_id .. ":" .. new_window_id,
+      run_command,
+      "Enter",
+    }
+      -- string.format('tmux send-keys -t %s:%s "%s" Enter', new_session_id, new_window_id, run_command_on_new_session)
+    local _, _, run_cmd_err = tutils.get_os_command_output(run_cmd)
+
+    run_cmd_err = run_cmd_err and run_cmd_err[1]
+    if run_cmd_err then
+      return nil, run_cmd_err
+    end
   end
 
   return new_session_id, err

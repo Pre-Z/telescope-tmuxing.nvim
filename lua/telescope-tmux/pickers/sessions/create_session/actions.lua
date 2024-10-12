@@ -3,6 +3,7 @@ local actions = require("telescope.actions")
 local popup = require("telescope-tmux.lib.popup")
 local utils = require("telescope-tmux.lib.utils")
 local helper = require("telescope-tmux.lib.helper")
+local config = require("telescope-tmux.core.config")
 
 local CreateSessionActions = {}
 
@@ -19,7 +20,8 @@ CreateSessionActions.on_select = function(prompt_bufnr, opts)
   local notifier = utils.get_notifier(opts)
   local new_session_name = selected_folder
 
-  local new_session_id, err = TmuxSessions:create_session(new_session_name, selected_full_path)
+  local conf = config.reinit_config(opts).opts
+  local new_session_id, err = TmuxSessions:create_session(new_session_name, selected_full_path, conf.create_session.run_command)
 
   if err then
     local duplicate_session_name
